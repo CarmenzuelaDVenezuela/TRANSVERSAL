@@ -1,0 +1,16 @@
+class Escena5 {  /* Viejo se ilumina por detras de forma 
+gradual y ciclica, como si la luz fuera y viniera, cuando le
+das click al viejo, se ilumina de forma constante y te da
+instrucciones (escritas o narradas), cuando le das al reloj, 
+se disminuye el audio y se hace yun fundido hacia la otra 
+escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
+
+
+  Escena5() {
+    
+  }
+  
+  void dibujar(){
+  
+  }
+}
