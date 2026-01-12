@@ -1,0 +1,97 @@
+import ddf.minim.*; //Librería audio
+import java.awt.geom.*;//Librería geom de Java 
+import processing.javafx.*;
+//Variables globales
+int estadoGeneral;
+EscenaDeCarga escenaDeCarga;
+Escena1 escena1;
+//Escena2 escena2;
+Escena3 escena3;
+Escena4 escena4;
+Escena5 escena5;
+
+// Minim audioManager;
+// AudioPlayer sonidoGeneral;
+// PImage flechaDerecha;
+
+void setup() {
+  size(1920, 1080, FX2D);//Full HD
+  hint(ENABLE_KEY_REPEAT);
+  fullScreen();
+ // audioManager = new Minim(this);
+  escenaDeCarga = new EscenaDeCarga();
+  escena1 = new Escena1();
+ // escena2 = new Escena2();
+  escena3 = new Escena3();
+  escena4 = new Escena4();
+  escena5 = new Escena5();
+  estadoGeneral = ESCENA_DE_CARGA;
+ // flechaDerecha = loadImage("flechaDerecha.png");
+}
+
+void draw() {
+  switch (estadoGeneral) {
+  case ESCENA_DE_CARGA:
+    escenaDeCarga.dibujar();
+    break;
+  case ESCENA1:
+    escena1.dibujar();
+    break;
+ /* case ESCENA2:
+    escena2.dibujar();
+    break;*/
+  case ESCENA3:
+    escena3.dibujar();
+    break;
+  case ESCENA4:
+    escena4.dibujar();
+    break;
+  case ESCENA5:
+    escena5.dibujar();
+    break;
+  }
+}
+
+void mousePressed() {
+  switch (estadoGeneral) {
+  case ESCENA_DE_CARGA:
+    escenaDeCarga.botonPulsado();
+    break;
+  case ESCENA1:
+    escena1.botonPulsado();
+    break;
+  case ESCENA3:
+    escena3.ratonPulsado();
+    break;
+  }
+}
+
+/*void mouseMoved() {
+  switch (estadoGeneral) {
+  case ESCENA2:
+    escena2.rotonDetectado();
+    break;
+  }
+}
+
+void keyPressed() {
+  switch (estadoGeneral) {
+  case ESCENA2:
+    escena2.teclaPulsada();
+    break;
+  }
+}
+
+void keyReleased() {
+  switch (estadoGeneral) {
+  case ESCENA2:
+    escena2.teclaLevantada();
+  }
+}*/
+
+PImage loadResizedImage(String nombreFichero, int ancho) {
+  PImage miImagen = loadImage(nombreFichero);
+  float ratio = miImagen.height /float(miImagen.width);
+  miImagen.resize(ancho, int(ancho*ratio));
+  return miImagen;
+}
