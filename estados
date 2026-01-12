@@ -1,0 +1,34 @@
+/******************************
+        Estados generales
+*******************************/
+final int ESCENA_DE_CARGA = 0;
+final int ESCENA1 = 1;
+final int ESCENA2 = 2;
+final int ESCENA3 = 3;
+final int ESCENA4 = 4;
+final int ESCENA5 = 5;
+final int ESCENA6 = 6;
+final int ESCENA7 = 7;
+final int ESCENA8 = 7;
+final int ESCENA9 = 9;
+final int ESCENA10 = 10;
+final int ESCENA11 = 11;
+final int ESCENA12 = 12;
+final int ESCENA13 = 13;
+final int ESCENA14 = 14;
+final int ESCENA15 = 15;
+/**************************************************
+        Estados de cada escena
+**************************************************/
+/*Estados Escena1*/
+final int E1_ACCION_INICIAL = -1;
+final int E1_ACCION_MOVIMIENTO = 0;
+final int E1_ACCION_DIALOGO1 = 1;
+final int E1_ACCION_DIALOGO2 = 2;
+final int E1_ACCION_VUELTA = 3;
+final int E1_ACCION_TRANSICION = 4;
+
+/*Estados Escena2*/
+final int ARRANCANDO_AUDIO = 0;
+final int JUGANDO = 1;
+final int TERMINADO = 2;
