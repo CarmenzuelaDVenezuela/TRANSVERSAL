@@ -1,0 +1,362 @@
+class Escena3 {
+ 
+ 
+    // Imagenes   
+  // PImage mano1, mano2, reloj3_1, reloj3_2, reloj3_3, reloj3_4, vasija, mesa2;
+ 
+
+        //Posiciones
+    //float fondoX, fondoY;
+  float mano1X, mano2X, relojX, vasijaX, mesaX;
+  float mano1Y, mano2Y, relojY, vasijaY, mesaY;
+
+    // Tamaños
+  float mano1W, mano2W, relojW, vasijaW, mesaW;
+  float mano1H, mano2H, relojH, vasijaH, mesaH;
+
+  
+  // Audio
+  //AudioPlayer audio3, sonidoClick, sonidoRoto, sonidoAgua;
+  
+    // Zoom suave de escena (intro)
+  float zoomEscena = 0.95; // empieza lejos
+  boolean intro = true;
+  
+  // Animación manos
+  float separacionManos = 0;      // se irá animando
+  float separacionFinal = 100;    // cuánto se separan
+
+  float rotMano1 = 0;
+  float rotMano2 = 0;
+  float rotFinal = radians(30);   // inclinación final
+
+  // Estados del reloj
+  int estadoReloj = 0;
+  int totalEstados = 4; // nuevo estado de transición
+  boolean transicionEscena = false;
+  
+  ArrayList<Jet> jets;
+
+  PVector jetA;
+  PVector jetB;
+
+  
+ // ================= TRANSICIÓN AGUA =================
+  ArrayList<Drop> drops;
+  float waterLevel;        // nivel del agua (de abajo hacia arriba)
+  boolean filling = false;
+  PVector source;          // origen de las gotas
+ // ===================================================
+
+
+  Escena3() {
+
+    //Imagenes
+     // mano1= loadImage("ma1.png");
+      // mano2= loadImage("ma2.png");
+      // reloj3_1= loadImage("r3_1.png");
+      // reloj3_2= loadImage("r3_2.png");
+      // reloj3_3= loadImage("r3_3.png");
+      // reloj3_4= loadImage("r3_4.png");
+      // mesa2= loadImage("me2.png");
+
+    // Posiciones iniciales
+    
+    mano1X= width/2+600;
+    mano2X= width/2-600;
+    relojX= width/2;
+    mesaX= width/2;
+    mano1Y= height/2-200;
+    mano2Y= height/2-200;
+    relojY= height/2;
+    mesaY= height/2+300;
+    vasijaX= width/2;
+    vasijaY= height/2-200;
+   
+    // Tamaños iniciales
+    
+    mano1W=  700;
+    mano2W=  700;
+    relojW=  500;
+    mesaW=  1200;
+    mano1H=  500;
+    mano2H=  500;
+    relojH=  500;
+    mesaH=  500;
+    vasijaW= 700;
+    vasijaH= 700;
+
+    
+    // Audio
+     //sonidoFondo = audioManager.loadFile("esc3.mp3");
+      //sonidoClick = audioManager.loadFile("click.mp3"); 
+      //sonidoRoto = audioManager.loadFile("roto.mp3");
+      //sonidoAgua = audioManager.loadFile("agua.mp3");
+      
+  jets = new ArrayList<Jet>();
+
+    // Puntos dentro del reloj (ajustables)
+  jetA = new PVector(relojX - 80, relojY + 40);
+  jetB = new PVector(relojX + 60, relojY + 20);
+
+      
+    //Transicion agua
+  drops = new ArrayList<Drop>();
+  waterLevel = height +200;   // empieza sin agua (abajo)
+  source = new PVector(relojX, relojY); // el reloj "genera" el agua
+
+  }
+
+void dibujar() {
+  rectMode(CENTER);
+  background(200);
+
+  // ZOOM INTRO DE ESCENA (LERP)
+  if (intro) {
+    zoomEscena = lerp(zoomEscena, 1.0, 0.03);
+    // ANIMACIÓN DE MANOS (ligada a la intro)
+
+    separacionManos = lerp(separacionManos, separacionFinal, 0.03);
+    rotMano1 = lerp(rotMano1, -rotFinal, 0.03);
+    rotMano2 = lerp(rotMano2,  rotFinal, 0.03);
+
+      // corte cuando ya es casi 1
+    if (abs(zoomEscena - 1.0) < 0.0005) {
+      zoomEscena = 1.0;
+      intro = false;
+    }
+  }
+
+  // "CÁMARA"
+  pushMatrix();
+
+  // Zoom desde el centro del reloj (más cinematográfico)
+  translate(relojX, relojY);
+  scale(zoomEscena);
+  translate(-relojX, -relojY);
+
+  // ================= ESCENA =================
+
+  // MESA
+  fill(#A5702F);
+  rect(mesaX, mesaY, mesaW, mesaH);
+
+  // MANO 1 (derecha)
+  pushMatrix();
+  translate(mano1X + separacionManos, mano1Y);
+  rotate(-rotMano1);
+  fill(0, 0, 255);
+  rect(0, 0, mano1W, mano1H);
+  popMatrix();
+
+  // MANO 2 (izquierda)
+  pushMatrix();
+  translate(mano2X - separacionManos, mano2Y);
+  rotate(-rotMano2);
+  fill(0, 0, 255);
+  rect(0, 0, mano2W, mano2H);
+  popMatrix();
+  
+  //VASIJA
+  pushMatrix();
+  translate(vasijaX, vasijaY);
+  fill(#69A74A);
+  rect(0, 0, vasijaW, vasijaH);
+  popMatrix();
+
+  // RELOJ (según estado)
+switch (estadoReloj) {
+  case 0:
+    fill(0, 255, 0); // estado normal
+    break;
+
+  case 1:
+    fill(255, 200, 0); // estado 2 (ej: activo)
+    break;
+
+  case 2:
+    fill(255, 0, 0); // estado 3 (ej: roto / alerta)
+    break;
+    
+  case 3:
+    fill(100); // transición
+    break;
+}
+
+  rect(relojX, relojY, relojW, relojH);
+
+  // ==========================================
+
+  popMatrix();
+  
+// ================= TRANSICIÓN CON AGUA =================
+
+  // Actualizar gotas
+  for (int i = drops.size() - 1; i >= 0; i--) {
+    Drop d = drops.get(i);
+    d.update();
+    d.show();
+
+    if (filling && d.pos.y >= waterLevel) {
+      drops.remove(i);
+      waterLevel -= 0.8; // velocidad de llenado
+    }
+  }
+  
+// ================= CHORROS DEL RELOJ =================
+
+  // Estado 1 → solo chorro A
+  if (estadoReloj == 1) {
+    for (int i = 0; i < 2; i++) {
+      jets.add(new Jet(jetA.x, jetA.y));
+    }
+  }
+
+  // Estado 2 → aparece otro chorro manteniendose el anterior
+  else if (estadoReloj == 2) {
+    for (int i = 0; i < 3; i++) {
+      jets.add(new Jet(jetA.x, jetA.y));
+      jets.add(new Jet(jetB.x, jetB.y));
+    }
+  }
+
+  // Estado 3 → ambos chorros (colapso)
+  else if (estadoReloj == 3) {
+    for (int i = 0; i < 4; i++) {
+      jets.add(new Jet(jetA.x, jetA.y));
+      jets.add(new Jet(jetB.x, jetB.y));
+    }
+  }
+
+  
+  for (int i = jets.size() - 1; i >= 0; i--) {
+    Jet j = jets.get(i);
+    j.update();
+    j.show();
+
+  // Eliminar cuando salen de pantalla
+    if (j.pos.y > height + 50) {
+      jets.remove(i);
+    }
+  }
+
+
+  // Dibujar agua acumulada
+  drawWater();
+
+  // Generar gotas si se está llenando
+  if (filling) {
+    for (int i = 0; i < 4; i++) {
+      drops.add(new Drop(source.x, source.y));
+    }
+  }
+
+  // Cuando el agua cubre toda la pantalla
+  if (filling && waterLevel <= -200) {
+    filling = false;
+    estadoGeneral = ESCENA4;
+  }
+}
+
+  
+
+
+void ratonPulsado() {
+  if (!intro && !filling && mouseSobreReloj()) {
+    estadoReloj++;
+
+    if (estadoReloj >= totalEstados - 1) {
+      estadoReloj = totalEstados - 1;
+
+      // INICIAR TRANSICIÓN DE AGUA
+      filling = true;
+      drops.clear();
+      source.set(relojX, relojY);
+    }
+  }
+}
+
+
+
+boolean mouseSobreReloj() {
+  // Ajuste por zoom de escena
+  float mx = (mouseX - relojX) / zoomEscena + relojX;
+  float my = (mouseY - relojY) / zoomEscena + relojY;
+
+  return mx > relojX - relojW/2 &&
+         mx < relojX + relojW/2 &&
+         my > relojY - relojH/2 &&
+         my < relojY + relojH/2;
+}
+
+// ================= AGUA =================
+void drawWater() {
+  noStroke();
+  fill(0, 150, 255);
+
+  beginShape();
+  for (int x = 0; x <= width; x += 20) { // pasos más largos
+    float wave = sin(x * 0.03 + frameCount * 0.03) * 18;
+    vertex(x, waterLevel + wave);
+  }
+  vertex(width, height);
+  vertex(0, height);
+  endShape();
+}
+
+
+// ================= GOTA =================
+class Drop {
+  PVector pos;
+  PVector vel;
+  float w, h;
+
+  Drop(float x, float y) {
+    pos = new PVector(x, y);
+
+    // Caen más rectas y más pesadas
+    vel = new PVector(random(-0.3, 0.3), random(5, 7));
+
+    // Tamaño de gota (MÁS GRANDE)
+    w = random(8, 12);
+    h = random(12, 18);
+  }
+
+  void update() {
+    pos.add(vel);
+    vel.y += 0.25; // más gravedad = sensación de peso
+  }
+
+  void show() {
+    noStroke();
+    fill(0, 140, 255);
+    ellipse(pos.x, pos.y, w, h);
+  }
+}
+
+class Jet {
+  PVector pos;
+  PVector vel;
+
+  Jet(float x, float y) {
+    pos = new PVector(x, y);
+
+    // Chorro fino, rápido y recto
+    vel = new PVector(random(-0.4, 0.4), random(7, 10));
+  }
+
+  void update() {
+    pos.add(vel);
+    vel.y += 0.15; // gravedad ligera
+  }
+
+  void show() {
+    stroke(0, 160, 255);
+    strokeWeight(2);
+    line(pos.x, pos.y, pos.x, pos.y + 12);
+    noStroke();
+  }
+}
+
+
+}
