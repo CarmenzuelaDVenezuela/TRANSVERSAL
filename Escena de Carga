@@ -1,0 +1,165 @@
+/* El dedo sera un sprite que este coordinado con el reloj,
+las agujas se haran por rotacion siguiendo los modelos de
+la plantilla, se realizara una tapa del reloj para que se
+rompa cuando este se vuelva loco*/
+
+
+class EscenaDeCarga {
+
+  // VARIABLES
+  //Datos 
+  float cx, cy;
+  float radio;
+
+  float angulo = 0;
+  float velocidadBase = 0.0015;   // giro lento constante inicial
+  float velocidad = 0.002;   // velocidad inicial muy baja
+  float factor = 1.01;       // factor exponencial
+  
+
+  boolean activo = false;           //boolean para controlar los clicks
+  
+  int ultimoClick = 0;          //variable para guardar el tiempo del ultimo click
+  int intervaloDobleClick = 300; // milisegundos
+  int tiempoDobleClick = -1;   // momento en que ocurre el doble click
+  int tiempoInicioAceleracion = -1;
+
+  //Audio
+  //AudioManager audio1, audioCrk, caricia;
+  
+  //Animación
+  final int ANIM_FPS = 8;
+  final int FRAME_INTERVAL = 1000 / ANIM_FPS;
+  int numFrames = 6;
+  int currentFrame = 0;
+  PImage[] images = new PImage[numFrames];
+  boolean animPlaying = false;
+  boolean animFinished = false;
+  int lastFrameTime = 0;
+
+  EscenaDeCarga() {  //CONSTRUCTOR
+    cx = width - width/4;
+    cy = height / 2;
+    radio = min(width * 2, height * 2) * 0.35;
+    
+    //Audio
+    //audio1 = audioManager.loadFile("carga.mp3")
+    //audioCrk = audioManager.loadFile("roto.mp3")
+    
+      for (int i = 0; i < numFrames; i++) {
+    String imageName = "PT_anim" + nf(i, 4) + ".gif";
+    images[i] = loadImage(imageName);
+   }
+  }
+
+  void dibujar() {  //LO QUE SE VE
+    background(230);
+//audio1.loop();
+  updateAnimation();
+  actualizar();
+  dibujarReloj();
+  drawAnimation();
+  
+   // ⏱️ cambio de escena tras 10 segundos de aceleración
+  if (activo && tiempoInicioAceleracion != -1) {
+    if (millis() - tiempoInicioAceleracion >= 10000) {
+      estadoGeneral = ESCENA1; 
+    }
+  }
+}
+
+void actualizar() {
+
+  if (activo) {
+    velocidad *= factor;
+    angulo += velocidad;
+    velocidad = min(velocidad, 0.5);
+  } else {
+    angulo += velocidadBase;
+  }
+}
+
+
+void dibujarReloj() {  //TODO LO QUE SE VE REFERENTE AL RELOJ
+    pushStyle();
+  // === CÍRCULO ROTANDO LENTO Y ANTIHORARIO ===
+  pushMatrix();
+  translate(cx, cy);
+
+  // rotación proporcional, más lenta y contraria
+  rotate(-angulo * 0.2);
+
+  stroke(0);
+  strokeWeight(4);
+  fill(245);
+  ellipse(0, 0, radio * 2, radio * 2);
+
+  popMatrix();
+
+  // === AGUJAS (sin rotación global) ===
+  stroke(0);
+
+  // Aguja larga
+  strokeWeight(3);
+  line(cx, cy,
+       cx + cos(angulo) * radio * 0.85,
+       cy + sin(angulo) * radio * 0.85);
+
+  // Aguja corta
+  strokeWeight(6);
+  line(cx, cy,
+       cx - cos(angulo * 0.6) * radio * 0.55,
+       cy + sin(angulo * 0.6) * radio * 0.55);
+    popStyle();
+}
+
+  // CLICK
+void botonPulsado() {
+  int ahora = millis();
+
+  if (!animPlaying && ahora - ultimoClick < intervaloDobleClick) {
+    animPlaying = true;
+    animFinished = false;
+    currentFrame = 0;
+    lastFrameTime = millis();
+  }
+
+  ultimoClick = ahora;
+}
+
+
+void updateAnimation() {
+  if (!animPlaying || animFinished) return;
+
+  if (millis() - lastFrameTime >= FRAME_INTERVAL) {
+    lastFrameTime = millis();
+
+    // 👉 Frame 4 (índice 3) → inicia reloj
+    if (currentFrame == 3 && !activo) {
+      activo = true;
+    }
+
+    currentFrame++;
+
+    // Fin de animación
+    if (currentFrame >= numFrames) {
+      currentFrame = numFrames - 1;
+      animFinished = true;
+      animPlaying = false;
+    }
+  }
+  
+  if (currentFrame == 3 && !activo) {
+  activo = true;
+  velocidad = velocidadBase;
+  tiempoInicioAceleracion = millis(); // ⏱️ empieza el conteo
+}
+
+}
+
+void drawAnimation() {
+  imageMode(CENTER);
+  image(images[currentFrame], width / 2, height / 2);
+ }
+
+}
