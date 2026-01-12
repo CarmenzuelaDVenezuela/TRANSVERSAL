@@ -5,12 +5,110 @@ instrucciones (escritas o narradas), cuando le das al reloj,
 se disminuye el audio y se hace yun fundido hacia la otra 
 escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
 
+//transición2 arena
+  class Escena5 {
+
+  int rows = 140;
+  float rowHeight;
+  float[] windOffset;
+  boolean[] activeRow;    // si la fila todavía se mueve y produce partículas
+
+  int currentRow = 0;
+  int rowDelay = 3;
+  int lastRowFrame = 0;
+
+  float windSpeed = 7;
+
+  boolean windRight = true; // viento izquierda → derecha
+  ArrayList<PVector> dust = new ArrayList<PVector>();
 
   Escena5() {
-    
+    rowHeight = height / float(rows);
+    windOffset = new float[rows];
+    activeRow = new boolean[rows];
+
+    for (int i = 0; i < rows; i++) {
+      windOffset[i] = 0;
+      activeRow[i] = false;
+    }
+
+    activeRow[0] = true; // empezamos desde la primera fila
   }
-  
-  void dibujar(){
-  
+
+  void dibujar() {
+    background(200);
+
+    updateWind();
+    updateDust();
+    drawSand();
+    drawDust();
+  }
+
+  void updateWind() {
+
+    // Activar filas progresivamente
+    if (frameCount - lastRowFrame > rowDelay && currentRow < rows - 1) {
+      currentRow++;
+      activeRow[currentRow] = true;
+      lastRowFrame = frameCount;
+    }
+
+    for (int i = 0; i <= currentRow; i++) {
+      if (activeRow[i]) {
+
+        // desplazamiento con ruido opcional
+        float n = noise(i * 0.08, frameCount * 0.02);
+        windOffset[i] += windSpeed * (0.4 + n);
+
+        // Si la fila ya desapareció, la desactivamos
+        if (windOffset[i] >= width) {
+          windOffset[i] = width;
+          activeRow[i] = false; // ya no genera partículas
+        }
+
+        // generar polvo solo si la fila sigue activa
+        if (activeRow[i] && random(1) < 0.6) {
+          float y = i * rowHeight + random(rowHeight);
+          float speed = random(4, 8);
+          if (!windRight) speed *= -1;
+          dust.add(new PVector(-windOffset[i], y, speed));
+        }
+      }
+    }
+  }
+
+  void drawSand() {
+    noStroke();
+    fill(194, 178, 128);
+
+    for (int i = 0; i < rows; i++) {
+      if (windOffset[i] >= width) continue;
+
+      float y = i * rowHeight;
+      rect(-windOffset[i], y, width, rowHeight + 1);
+    }
+  }
+
+  void updateDust() {
+    for (int i = dust.size() - 1; i >= 0; i--) {
+      PVector p = dust.get(i);
+      p.x += p.z;
+
+      // desaparecer al llegar al lado opuesto
+      if (windRight) {
+        if (p.x > width) dust.remove(i);
+      } else {
+        if (p.x < 0) dust.remove(i);
+      }
+    }
+  }
+
+  void drawDust() {
+    noStroke();
+    fill(210, 200, 160, 130);
+    for (PVector p : dust) {
+      ellipse(p.x, p.y, 2, 2);
+    }
   }
 }
+
