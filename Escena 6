@@ -1,0 +1,153 @@
+class EscenaPuzzle {
+
+  // ================= ENGRANAJES =================
+  float[] circX = new float[3];
+  float[] circY = new float[3];
+  float circR = 140;
+  float circRadio = circR / 2;
+  float[] circAngle = new float[3];
+  boolean[] circColocados = new boolean[3];
+  boolean[] dragging = new boolean[3];
+  float[] offsetX = new float[3];
+  float[] offsetY = new float[3];
+
+  // ================= BOTONES =================
+  float[] botonX = new float[3];
+  float[] botonY = new float[3];
+  float botonR = 30;
+
+  // ================= TAPA =================
+  float tapaX, tapaY;
+  float tapaR = 400;
+  boolean tapaDragging = false;
+  float tapaOffsetX, tapaOffsetY;
+  boolean tapaFijada = false;
+
+  // ================= CUADRADO ROJO CENTRAL =================
+  float cajaX, cajaY;
+  float cajaSize = 600;
+
+  EscenaPuzzle() {
+
+    // ---- CUADRADO ROJO CENTRAL ----
+    cajaX = width / 2;
+    cajaY = height / 2;
+
+    // ---- ENGRANAJES (aleatorios en todo el lienzo) ----
+    for (int i = 0; i < 3; i++) {
+      circX[i] = random(circR / 2, width - circR / 2);
+      circY[i] = random(circR / 2, height - circR / 2);
+      circAngle[i] = random(TWO_PI);
+    }
+
+    // ---- BOTONES (más centrados y separados dentro del cuadrado rojo) ----
+    botonX[0] = cajaX;
+    botonY[0] = cajaY - 60;
+
+    botonX[1] = cajaX - 100;
+    botonY[1] = cajaY + 50;
+
+    botonX[2] = cajaX + 100;
+    botonY[2] = cajaY + 50;
+
+    // ---- TAPA (zona inicial aleatoria) ----
+    tapaX = random(tapaR / 2, width - tapaR / 2);
+    tapaY = random(tapaR / 2, height - tapaR / 2);
+  }
+
+  void display() {
+    background(220);
+
+    // ---- CUADRADO ROJO CENTRAL ----
+    fill(200, 50, 50);
+    rectMode(CENTER);
+    rect(cajaX, cajaY, cajaSize, cajaSize);
+
+    // ===== ENGRANAJES =====
+    for (int i = 0; i < 3; i++) {
+      pushMatrix();
+      translate(circX[i], circY[i]);
+      rotate(circAngle[i]);
+      fill(90, 140, 240);
+      ellipse(0, 0, circR, circR);
+      stroke(0);
+      line(0, 0, circRadio, 0);
+      noStroke();
+      if (!circColocados[i]) circAngle[i] += 0.04;
+      popMatrix();
+    }
+
+    // ===== BOTONES =====
+    fill(180, 180, 180, 120);
+    rectMode(CENTER);
+    for (int i = 0; i < 3; i++) {
+      rect(botonX[i], botonY[i], botonR, botonR);
+    }
+
+    // ===== TAPA =====
+    fill(200, 120, 40, 160);
+    ellipse(tapaX, tapaY, tapaR, tapaR);
+  }
+
+  void mousePressed() {
+    // DRAG ENGRANAJES
+    for (int i = 0; i < 3; i++) {
+      if (!circColocados[i] && dist(mouseX, mouseY, circX[i], circY[i]) < circRadio) {
+        dragging[i] = true;
+        offsetX[i] = circX[i] - mouseX;
+        offsetY[i] = circY[i] - mouseY;
+      }
+    }
+
+    // DRAG TAPA
+    if (!tapaFijada && dist(mouseX, mouseY, tapaX, tapaY) < tapaR / 2) {
+      tapaDragging = true;
+      tapaOffsetX = tapaX - mouseX;
+      tapaOffsetY = tapaY - mouseY;
+    }
+  }
+
+  void mouseDragged() {
+    for (int i = 0; i < 3; i++) {
+      if (dragging[i]) {
+        circX[i] = mouseX + offsetX[i];
+        circY[i] = mouseY + offsetY[i];
+      }
+    }
+
+    if (tapaDragging) {
+      tapaX = mouseX + tapaOffsetX;
+      tapaY = mouseY + tapaOffsetY;
+    }
+  }
+
+  void mouseReleased() {
+    for (int i = 0; i < 3; i++) {
+      dragging[i] = false;
+      // Coloca los engranajes en los botones si está cerca
+      if (dist(circX[i], circY[i], botonX[i], botonY[i]) < botonR) {
+        circX[i] = botonX[i];
+        circY[i] = botonY[i];
+        circColocados[i] = true;
+      }
+    }
+
+    tapaDragging = false;
+
+    // Fija la tapa solo si cubre todos los botones
+    boolean ok = true;
+    for (int i = 0; i < 3; i++) {
+      if (dist(tapaX, tapaY, botonX[i], botonY[i]) > tapaR / 2 - 20) ok = false;
+    }
+    if (ok) {
+      tapaFijada = true;
+      // Coloca la tapa sobre el centro del conjunto de botones
+      float minX = min(botonX[0], min(botonX[1], botonX[2]));
+      float maxX = max(botonX[0], max(botonX[1], botonX[2]));
+      float minY = min(botonY[0], min(botonY[1], botonY[2]));
+      float maxY = max(botonY[0], max(botonY[1], botonY[2]));
+      tapaX = (minX + maxX) / 2;
+      tapaY = (minY + maxY) / 2;
+    }
+  }
+}
