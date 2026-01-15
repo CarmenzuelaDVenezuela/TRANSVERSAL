@@ -4,7 +4,7 @@ class Escena1 {
   int estadoEscena1;
   
   // Imagenes   
-  // PImage fondo, col1, col2, aur1, time1;
+  // PImage fondo1, col1, col2, aur1, time1;
  
 
   // Posiciones
@@ -47,7 +47,7 @@ class Escena1 {
     estadoEscena1 = E1_ACCION_INICIAL;
     
     //Imagenes
-     //fondo = loadImage("esc1.png");
+     //fondo1 = loadImage("esc1.png");
       //col1 = loadImage("c1.png");
       //col2 = loadImage("c2.png");
       //aur1 = loadImage("a1.png");
