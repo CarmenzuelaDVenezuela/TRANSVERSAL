@@ -1,3 +1,6 @@
+ArrayList<DustParticle> dust = new ArrayList<DustParticle>();
+
+
 class Escena5 {  /* Viejo se ilumina por detras de forma 
 gradual y ciclica, como si la luz fuera y viniera, cuando le
 das click al viejo, se ilumina de forma constante y te da
@@ -21,7 +24,7 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
   float viejoH, aur5H, mesa5H, reloj5H;
   
   // Audio
-  AudioPlayer audio5, divinidad, dial5;
+  AudioPlayer audio5, divinidad;
   
   //TRANSICION INICIO
   int rows = 140;
@@ -33,10 +36,25 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
   int rowDelay = 3;
   int lastRowFrame = 0;
 
-  float windSpeed = 7;
+  float windSpeed = 7; 
+     
+  boolean hoverReloj = false;
 
-  boolean windRight = true; // viento izquierda → derecha
-  ArrayList<PVector> dust = new ArrayList<PVector>();
+  float relojScale = 1.0;
+  float relojScaleTarget = 1.0;
+  float relojScaleSpeed = 0.1;
+  
+  boolean hoverViejo = false;
+
+  float haloViejoAlpha = 0;
+  float haloViejoAlphaTarget = 0;
+  float haloViejoFadeSpeed = 0.08;
+  
+  boolean zoomReloj = false;
+  float relojZoom = 1.0;
+  float relojZoomSpeed = 0.35;   // rapidez del zoom
+
+
 
   Escena5() {
     
@@ -67,15 +85,29 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
     }
     
    activeRow[0] = true; // empezamos desde la primera fila
-    
+   
+       // Audio
+     //audio5 = audioManager.loadFile("esc5.mp3");
+      //divinidad = audioManager.loadFile("dios.mp3");   
   }
   
   void dibujar(){
+    //audio5.loop();
     background(200);
     
         
     pushStyle();
     rectMode(CENTER);
+    
+   // HALO SIMPLE DETRÁS DEL VIEJO
+  if (haloViejoAlpha > 1) {
+    pushStyle();
+    noStroke();
+    fill(255, 255, 0, haloViejoAlpha);
+    ellipse(viejoX, viejoY-250, viejoW * 1.1, viejoH * 0.6);
+  popStyle();
+}
+
     //VIEJO
     fill(0,0,255);
     rect(viejoX, viejoY, viejoW, viejoH);
@@ -84,83 +116,185 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
     fill(#986F3C);
     rect(mesa5X, mesa5Y, mesa5W, mesa5H);   
     
-    //RELOJ
-    fill(255,255,0);
-    rect(reloj5X, reloj5Y, reloj5W, reloj5H);
-    popStyle();
+    checkHoverReloj();
     
+    checkHoverViejo();
+
+    if (hoverViejo) {
+      //divinidad.play();
+      haloViejoAlphaTarget = 140;
+    } else {
+      //divinidad.stop();
+      haloViejoAlphaTarget = 0;
+    }
+
+    haloViejoAlpha = lerp(haloViejoAlpha, haloViejoAlphaTarget, haloViejoFadeSpeed);
+
+    
+    if (hoverReloj) {
+      cursor(HAND);
+      relojScaleTarget = 1.05;
+    } else {
+      cursor(ARROW);
+      relojScaleTarget = 1.0;
+    }
+
+  // interpolación suave
+    relojScale = lerp(relojScale, relojScaleTarget, relojScaleSpeed);
+   
+   if (zoomReloj) {
+    relojZoom += relojZoomSpeed;
+  }
+
+   
+    // RELOJ
+    pushMatrix();
+    translate(reloj5X, reloj5Y);
+    float escalaFinal = relojScale * relojZoom;
+    scale(escalaFinal);
+
+    if (hoverReloj) {
+      fill(255, 220, 80);
+    } else {
+    fill(255, 255, 0);
+  }
+
+    rect(0, 0, reloj5W, reloj5H);
+  popMatrix();
+
+
     updateWind();
-    updateDust();
     drawSand();
-    drawDust();
+    
+    if (zoomReloj && relojZoom > 8) {
+      //audio5.stop();
+  estadoGeneral= ESCENA6;
+   }
+
   }
   
-    void updateWind() {
+ void updateWind() {
 
-    // Activar filas progresivamente
-    if (frameCount - lastRowFrame > rowDelay && currentRow < rows - 1) {
-      currentRow++;
-      activeRow[currentRow] = true;
-      lastRowFrame = frameCount;
-    }
-
-    for (int i = 0; i <= currentRow; i++) {
-      if (activeRow[i]) {
-
-        // desplazamiento con ruido opcional
-        float n = noise(i * 0.08, frameCount * 0.02);
-        windOffset[i] += windSpeed * (0.4 + n);
-
-        // Si la fila ya desapareció, la desactivamos
-        if (windOffset[i] >= width) {
-          windOffset[i] = width;
-          activeRow[i] = false; // ya no genera partículas
-        }
-
-        // generar polvo solo si la fila sigue activa
-        if (activeRow[i] && random(1) < 0.6) {
-          float y = i * rowHeight + random(rowHeight);
-          float speed = random(4, 8);
-          if (!windRight) speed *= -1;
-          dust.add(new PVector(-windOffset[i], y, speed));
-        }
-      }
-    }
+  // Activar filas progresivamente
+  if (frameCount - lastRowFrame > rowDelay && currentRow < rows - 1) {
+    currentRow++;
+    activeRow[currentRow] = true;
+    lastRowFrame = frameCount;
   }
 
-  void drawSand() {
-    noStroke();
-    fill(194, 178, 128);
+  for (int i = 0; i <= currentRow; i++) {
+    if (activeRow[i]) {
 
-    for (int i = 0; i < rows; i++) {
-      if (windOffset[i] >= width) continue;
+      float n = noise(i * 0.08, frameCount * 0.02);
+      float wind = windSpeed * (0.4 + n);
+      windOffset[i] += wind;
 
+      // Generar partículas de polvo
       float y = i * rowHeight;
-      rect(-windOffset[i], y, width, rowHeight + 1);
-    }
-  }
+      float sandFrontX = width - windOffset[i];
 
-  void updateDust() {
-    for (int i = dust.size() - 1; i >= 0; i--) {
-      PVector p = dust.get(i);
-      p.x -= p.z;
+      if (random(1) < 0.3) {
+        dust.add(new DustParticle(
+          sandFrontX,
+          y + rowHeight * 0.5 + random(-4, 4), wind));
+}
 
-      // desaparecer al llegar al lado opuesto
-      if (windRight) {
-        if (p.x > width) dust.remove(i);
-      } else {
-        if (p.x < 0) dust.remove(i);
+      if (windOffset[i] >= width) {
+        windOffset[i] = width;
+        activeRow[i] = false;
       }
     }
   }
 
-  void drawDust() {
-    noStroke();
-    fill(210, 200, 160, 130);
-    for (PVector p : dust) {
-      ellipse(p.x, p.y, 2, 2);
+  // Actualizar y dibujar partículas
+  for (int i = dust.size() - 1; i >= 0; i--) {
+    DustParticle p = dust.get(i);
+    p.update();
+    p.display();
+    if (p.isDead()) {
+      dust.remove(i);
     }
   }
 }
 
-//LAS PARTICULAS VAN AL REVES
+void ratonPulsado() {
+  if (hoverReloj && !zoomReloj && arenaTerminada()) {
+    zoomReloj = true;
+  }
+}
+
+
+void checkHoverViejo() {
+  hoverViejo =
+    mouseX > viejoX - viejoW/2 &&
+    mouseX < viejoX + viejoW/2 &&
+    mouseY > viejoY - viejoH/2 &&
+    mouseY < viejoY;   // SOLO mitad superior
+}
+
+
+void checkHoverReloj() {
+  hoverReloj =
+    mouseX > reloj5X - reloj5W/2 &&
+    mouseX < reloj5X + reloj5W/2 &&
+    mouseY > reloj5Y - reloj5H/2 &&
+    mouseY < reloj5Y + reloj5H/2;
+}
+
+boolean arenaTerminada() {
+  for (int i = 0; i < rows; i++) {
+    if (windOffset[i] < width) {
+      return false;  // todavía hay arena moviéndose
+    }
+  }
+  return true;  // toda la arena llegó al final
+}
+
+  void drawSand() {
+  pushStyle();
+  rectMode(CORNER);
+  noStroke();
+  fill(194, 178, 128);
+
+  for (int i = 0; i < rows; i++) {
+    if (windOffset[i] >= width) continue;
+
+    float y = i * rowHeight;
+    rect(-windOffset[i], y, width, rowHeight + 1);
+  }
+  popStyle();
+ }
+}
+
+class DustParticle {
+  PVector pos;
+  PVector vel;
+  float life;
+  float size;
+
+  DustParticle(float x, float y, float wind) {
+    pos = new PVector(x, y);
+    vel = new PVector(
+      -wind * 0.9 + random(-0.6, -0.2),
+      random(-0.25, 0.25)
+    );
+    life = 200;
+    size = random(2, 4);
+}
+
+
+  void update() {
+    pos.add(vel);
+    life -= 2;
+  }
+
+  void display() {
+    noStroke();
+    fill(200, 180, 150, life);
+    ellipse(pos.x, pos.y, size, size);
+  }
+
+  boolean isDead() {
+    return life <= 0 || pos.x < -10;
+  }
+}
