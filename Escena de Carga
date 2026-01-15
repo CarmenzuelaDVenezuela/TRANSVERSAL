@@ -16,6 +16,7 @@ class EscenaDeCarga {
   float velocidad = 0.002;   // velocidad inicial muy baja
   float factor = 1.01;       // factor exponencial
   
+  //PImage fondo, relojIn, aguja1, aguja2;
 
   boolean activo = false;           //boolean para controlar los clicks
   
@@ -25,7 +26,7 @@ class EscenaDeCarga {
   int tiempoInicioAceleracion = -1;
 
   //Audio
-  //AudioManager audio1, audioCrk, caricia;
+  //AudioManager audio, audioAcc, caricia;
   
   //Animación
   final int ANIM_FPS = 8;
@@ -43,8 +44,14 @@ class EscenaDeCarga {
     radio = min(width * 2, height * 2) * 0.35;
     
     //Audio
-    //audio1 = audioManager.loadFile("carga.mp3")
-    //audioCrk = audioManager.loadFile("roto.mp3")
+    //audio = audioManager.loadFile("carga.mp3")
+    //audioAcc = audioManager.loadFile("acceleracion.mp3")
+    
+    //Imagenes
+    //fondo= loadImage(edc.png);
+    //relojIn= loadImage(relojIn.png);
+    //aguja1= loadImage(aguja1.png);
+    //aguja2= loadImage(aguja2.png);
     
       for (int i = 0; i < numFrames; i++) {
     String imageName = "PT_anim" + nf(i, 4) + ".gif";
@@ -54,7 +61,7 @@ class EscenaDeCarga {
 
   void dibujar() {  //LO QUE SE VE
     background(230);
-//audio1.loop();
+//audio.loop();
   updateAnimation();
   actualizar();
   dibujarReloj();
@@ -63,6 +70,7 @@ class EscenaDeCarga {
    // ⏱️ cambio de escena tras 10 segundos de aceleración
   if (activo && tiempoInicioAceleracion != -1) {
     if (millis() - tiempoInicioAceleracion >= 10000) {
+      //audio.stop();
       estadoGeneral = ESCENA1; 
     }
   }
@@ -71,6 +79,8 @@ class EscenaDeCarga {
 void actualizar() {
 
   if (activo) {
+    //audio. shiftVolume(80,25, 3000)
+    //audioAcc.play();
     velocidad *= factor;
     angulo += velocidad;
     velocidad = min(velocidad, 0.5);
@@ -158,7 +168,7 @@ void updateAnimation() {
 }
 
 void drawAnimation() {
-  imageMode(CENTER);
+  imageMode(CENTER);     
   image(images[currentFrame], width / 2, height / 2);
  }
 
