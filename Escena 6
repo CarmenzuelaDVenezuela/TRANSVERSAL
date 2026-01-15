@@ -1,4 +1,4 @@
-class EscenaPuzzle {
+class Escena6 {
 
   // ================= ENGRANAJES =================
   float[] circX = new float[3];
@@ -27,7 +27,7 @@ class EscenaPuzzle {
   float cajaX, cajaY;
   float cajaSize = 600;
 
-  EscenaPuzzle() {
+  Escena6() {
 
     // ---- CUADRADO ROJO CENTRAL ----
     cajaX = width / 2;
@@ -55,7 +55,7 @@ class EscenaPuzzle {
     tapaY = random(tapaR / 2, height - tapaR / 2);
   }
 
-  void display() {
+  void dibujar() {
     background(220);
 
     // ---- CUADRADO ROJO CENTRAL ----
@@ -89,7 +89,7 @@ class EscenaPuzzle {
     ellipse(tapaX, tapaY, tapaR, tapaR);
   }
 
-  void mousePressed() {
+  void ratonPulsado() {
     // DRAG ENGRANAJES
     for (int i = 0; i < 3; i++) {
       if (!circColocados[i] && dist(mouseX, mouseY, circX[i], circY[i]) < circRadio) {
@@ -107,7 +107,7 @@ class EscenaPuzzle {
     }
   }
 
-  void mouseDragged() {
+  void ratonArrastrado() {
     for (int i = 0; i < 3; i++) {
       if (dragging[i]) {
         circX[i] = mouseX + offsetX[i];
@@ -121,7 +121,7 @@ class EscenaPuzzle {
     }
   }
 
-  void mouseReleased() {
+  void ratonLevantado() {
     for (int i = 0; i < 3; i++) {
       dragging[i] = false;
       // Coloca los engranajes en los botones si está cerca
