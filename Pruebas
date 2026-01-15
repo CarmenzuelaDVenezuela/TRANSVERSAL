@@ -9,6 +9,7 @@ Escena1 escena1;
 Escena3 escena3;
 Escena4 escena4;
 Escena5 escena5;
+Escena6 escena6;
 
 // Minim audioManager;
 // AudioPlayer sonidoGeneral;
@@ -25,7 +26,8 @@ void setup() {
   escena3 = new Escena3();
   escena4 = new Escena4();
   escena5 = new Escena5();
-  estadoGeneral = ESCENA_DE_CARGA;
+  escena6 = new Escena6();
+  estadoGeneral = ESCENA5;
  // flechaDerecha = loadImage("flechaDerecha.png");
 }
 
@@ -49,6 +51,9 @@ void draw() {
   case ESCENA5:
     escena5.dibujar();
     break;
+  case ESCENA6:
+    escena6.dibujar();
+    break;
   }
 }
 
@@ -62,6 +67,12 @@ void mousePressed() {
     break;
   case ESCENA3:
     escena3.ratonPulsado();
+    break;
+  case ESCENA5:
+    escena5.ratonPulsado();
+    break;
+  case ESCENA6:
+    escena6.ratonPulsado();
     break;
   }
 }
@@ -88,6 +99,20 @@ void keyReleased() {
     escena2.teclaLevantada();
   }
 }*/
+
+void mouseReleased() {
+  switch (estadoGeneral) {
+  case ESCENA6:
+    escena6.ratonLevantado();
+  }
+}
+
+void mouseDragged() {
+  switch (estadoGeneral) {
+  case ESCENA6:
+    escena6.ratonArrastrado();
+  }
+}
 
 PImage loadResizedImage(String nombreFichero, int ancho) {
   PImage miImagen = loadImage(nombreFichero);
