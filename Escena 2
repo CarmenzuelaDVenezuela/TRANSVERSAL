@@ -18,6 +18,9 @@ class Escena2 {
     // Tamaños
   float aur2H, mesaH, relojH, persEgH;
   float aur2W, mesaW, relojW, persEgW;
+  
+    // Imagenes
+  //PImage aur2, reloj2, fondo2, persEg, fondo2;
 
 
     // TRANSICIONES
@@ -48,6 +51,11 @@ class Escena2 {
    // sonidoExito = audioManager.loadFile("exito.mp3");
    // sonidoFallo = audioManager.loadFile("fallo.mp3");
     estadoEscena = ARRANCANDO_AUDIO;
+    
+    aur2=
+    reloj2=
+    mesa=
+    persEg=
     
      // POSICIONES OBJETIVO
   aur2X_T = width/2 - 500;
