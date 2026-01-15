@@ -2,7 +2,7 @@ class Escena3 {
  
  
     // Imagenes   
-  // PImage mano1, mano2, reloj3_1, reloj3_2, reloj3_3, reloj3_4, vasija, mesa2;
+  // PImage fondo3, mano1, mano2, reloj3_1, reloj3_2, reloj3_3, reloj3_4, vasija, mesa2;
  
 
         //Posiciones
@@ -16,7 +16,7 @@ class Escena3 {
 
   
   // Audio
-  //AudioPlayer audio3, sonidoClick, sonidoRoto, sonidoAgua;
+  //AudioPlayer audio3, sonidoRoto, sonidoAgua;
   
     // Zoom suave de escena (intro)
   float zoomEscena = 0.95; // empieza lejos
@@ -88,8 +88,7 @@ class Escena3 {
 
     
     // Audio
-     //sonidoFondo = audioManager.loadFile("esc3.mp3");
-      //sonidoClick = audioManager.loadFile("click.mp3"); 
+     //audio3 = audioManager.loadFile("esc3.mp3"); 
       //sonidoRoto = audioManager.loadFile("roto.mp3");
       //sonidoAgua = audioManager.loadFile("agua.mp3");
       
@@ -110,6 +109,7 @@ class Escena3 {
 void dibujar() {
   rectMode(CENTER);
   background(200);
+  //audio3.loop();
 
   // ZOOM INTRO DE ESCENA (LERP)
   if (intro) {
@@ -171,14 +171,17 @@ switch (estadoReloj) {
     break;
 
   case 1:
+  //sonidoRoto.play();
     fill(255, 200, 0); // estado 2 (ej: activo)
     break;
 
   case 2:
+    //sonidoRoto.play();
     fill(255, 0, 0); // estado 3 (ej: roto / alerta)
     break;
     
   case 3:
+    //sonidoRoto.play();
     fill(100); // transición
     break;
 }
@@ -254,6 +257,8 @@ switch (estadoReloj) {
   // Cuando el agua cubre toda la pantalla
   if (filling && waterLevel <= -200) {
     filling = false;
+    //SonidoAgua.stop();
+    //audio3.stop();
     estadoGeneral = ESCENA4;
   }
 }
@@ -264,9 +269,11 @@ switch (estadoReloj) {
 void ratonPulsado() {
   if (!intro && !filling && mouseSobreReloj()) {
     estadoReloj++;
+    //sonidoAgua.play();
 
     if (estadoReloj >= totalEstados - 1) {
       estadoReloj = totalEstados - 1;
+      //sonidoAgua.loop();
 
       // INICIAR TRANSICIÓN DE AGUA
       filling = true;
