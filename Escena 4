@@ -3,6 +3,8 @@ controlar la transicion de la arena segun x frame*/
 
 class Escena4 {
   
+  //PImage fondo4;
+  
     //ANIMACIÓN
   final int ANIM_FPS = 8;
   final int FRAME_INTERVAL = 1000 / ANIM_FPS;
@@ -40,6 +42,8 @@ class Escena4 {
   float avalancheThreshold = 12;
   float avalancheSpeed = 0.15;
   
+  boolean exitScene = false;
+  
    //Audio
   //AudioManager audio4, sonidoAgua2, sonidoArena, caricia;
 
@@ -57,6 +61,7 @@ class Escena4 {
 
   // ------------------------------------------------
 void dibujar() {
+  //audio4.loop();
   background(200);
 
   // 1. Animación (FONDO)
@@ -65,6 +70,7 @@ void dibujar() {
 
   // 2. Agua (ENCIMA)
   if (draining) {
+    //sonidoAgua2.loop();
     waterSpeed += waterAccel;
     waterLevel += waterSpeed;
 
@@ -79,20 +85,26 @@ void dibujar() {
       currentFrame = 0;
       lastFrameTime = millis();
     }
-  }
+  } //else {sonidoAgua2.stop();}
 
   drawWater();
 
   // 3. Arena (cuando termina la animación)
   if (animFinished && !sandFalling && !sandFinished) {
+    //sonidoArena.loop();
     sandFalling = true;
   }
 
   if (sandFalling && !sandFinished) {
     updateSand();
-  }
+  } //else {sonidoArena.stop();}
 
   drawSand();
+  
+  if (exitScene) {
+  //println("CAMBIO A ESCENA 5");
+  estadoGeneral = ESCENA5;
+ }
 }
 
 
@@ -101,12 +113,14 @@ void updateAnimation() {
   if (!animPlaying || animFinished) return;
 
   if (millis() - lastFrameTime >= FRAME_INTERVAL) {
+    //caricia.play();
     lastFrameTime = millis();
     currentFrame++;
 
     // Termina SOLO UNA VEZ
     if (currentFrame >= numFrames) {
       currentFrame = numFrames - 1;
+      //caricia.stop();
       animFinished = true;
       animPlaying = false;
     }
@@ -211,17 +225,17 @@ void drawAnimation() {
       }
 
       // ¿Pantalla llena?
-      float minSand = 0;
+      float minSand = Float.MAX_VALUE;
       for (float h : sandMap) minSand = min(minSand, h);
 
       if (minSand >= height) {
         sandFinished = true;
         sandFalling = false;
         grains.clear();
+        exitScene = true; // se dispara una sola vez
       }
+
     }
  
+  }
 }
-}
-
-//crear escena cinco, principio transicion arena inverso
