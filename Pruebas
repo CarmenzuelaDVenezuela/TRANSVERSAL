@@ -10,6 +10,7 @@ Escena3 escena3;
 Escena4 escena4;
 Escena5 escena5;
 Escena6 escena6;
+Escena7 escena7;
 
 // Minim audioManager;
 // AudioPlayer sonidoGeneral;
@@ -29,6 +30,8 @@ void setup() {
   escena6 = new Escena6();
   estadoGeneral = ESCENA5;
  // flechaDerecha = loadImage("flechaDerecha.png");
+  escena7 = new Escena7();
+  estadoGeneral = ESCENA7;
 }
 
 void draw() {
@@ -54,6 +57,16 @@ void draw() {
   case ESCENA6:
     escena6.dibujar();
     break;
+case ESCENA7:
+    escena7.dibujar();
+    break;
+case ESCENA8:
+      background(200, 180, 255); // color de fondo temporal para que se vea el cambio 
+      break;
+
+case ESCENA_CREDITOS:
+  background(255);
+  break;
   }
 }
 
@@ -73,6 +86,9 @@ void mousePressed() {
     break;
   case ESCENA6:
     escena6.ratonPulsado();
+    break;
+case ESCENA7:
+    escena7.botonPulsado();
     break;
   }
 }
