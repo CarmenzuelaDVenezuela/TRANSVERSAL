@@ -1,0 +1,64 @@
+class Escena8 {  
+
+  // Estado
+  int estadoEscena8;
+  
+  // Imagenes   
+  // PImage fondo8_1, fondo8_2, aur8, aur8_2, mujer1, mujer2, mujer3,;
+ 
+
+  // Posiciones
+  //int fondo1X, fondo2X, fondoY;
+  int aurX, aurY, mujerX, mujerY;
+
+  // Tamaños
+  int aurW, aurH, mujerW, mujerH;
+  
+  
+  // Audio
+  AudioPlayer audio8;
+
+  Escena8() {
+    
+    //Imagenes
+     //fondo8_1 = loadImage("esc8_1.png");
+     //fondo8_2 = loadImage("esc8_2.png");
+     //aur8 = loadImage("a8.png");
+     //aur8_2 = loadImage("a8_2.png");
+     //mujer1 = loadImage("mujer1.png");
+     //mujer2 = loadImage("mujer2.png");
+     //mujer3 = loadImage("mujer3.png");
+     
+    // Posiciones 
+  aurX= 500;
+  aurY= height/2+100;
+  mujerX= 200; 
+  mujerY= height/2;
+
+    // Tamaños iniciales
+  aurW= 300; 
+  aurH= 550; 
+  mujerW= 400; 
+  mujerH= 1080;
+
+    
+    // Audio
+     //audioEsc1 = audioManager.loadFile("esc1.mp3");
+      //dial1 = audioManager.loadFile("time2.mp3"); 
+      //dial2 = audioManager.loadFile("time1.mp3");
+      //audTrans = audioManager.loadFile("brisa.mp3");
+     //estadoEscena8 = ;
+  }
+
+void dibujar() {
+  rectMode(CENTER);
+  background(200);
+  
+  fill(255,255,0);
+  rect(aurX, aurY, aurW, aurH);
+  
+  fill(255,0,0);
+  rect(mujerX, mujerY, mujerW, mujerH);
+  
+}
+}
