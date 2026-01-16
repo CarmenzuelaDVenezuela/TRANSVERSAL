@@ -22,6 +22,8 @@ class Escena7 {
 
   // Enemigos infinitos
   ArrayList<Enemy> enemies;
+  int maxEnemigos = 10; // cuantos enemigos como máximo pueden estar en pantalla
+
   
   // META
   float metaX, metaY;
@@ -178,7 +180,7 @@ void ratonPulsado() {
 void dibujarJuego() {
 
   // Spawn enemigos
-  if (millis() - tiempoAnterior > intervalo) {
+  if (millis() - tiempoAnterior > intervalo && enemies.size() < maxEnemigos) {
     Enemy e = new Enemy();
     e.y = random(0, height - ph);
 
@@ -333,7 +335,7 @@ void generarMeta() {
   float speed;       // NUEVO: velocidad individual
 
   Enemy() {
-    speed = random(1, 5); // velocidad aleatoria por enemigo
+    speed = random(1, 3); // velocidad aleatoria por enemigo
   }
 
   void update() {
