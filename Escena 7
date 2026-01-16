@@ -1,4 +1,12 @@
 class Escena7 {
+  
+  int estadoEscena7 = JUEGO;
+  
+  //IMAGENES
+  PImage falda, mano, reloj, fondo7, fondo7_2, reloj7;
+  
+  //AUDIO
+  AudioPlayer audio7, fallo, exito, susto, suspense;
 
   // Tamaño personajes
   int pw = 50;
@@ -14,6 +22,10 @@ class Escena7 {
 
   // Enemigos infinitos
   ArrayList<Enemy> enemies;
+  
+  // META
+  float metaX, metaY;
+  boolean metaActiva = false;
 
   // Temporizador para spawn
   int tiempoAnterior = 0;
@@ -26,30 +38,63 @@ class Escena7 {
   int tiempoGameOver = 0;       // cuando empieza el mensaje
   int duracionGameOver = 4000;  // 4 segundos
   
-//sub-es
-int rectDerechoW = 250;
-int rectDerechoH = 640;
+  
+  //SEGUNDA PARTE
+  
+  //falda
+  int faldaX, faldaY, faldaW, faldaH;
+  
+  //reloj
+  int relojX, relojY, relojW, relojH;
 
-int rectIzquierdoW = 80;
-int rectIzquierdoH; // calcularemos para que llegue casi al medio de la pantalla
+  //cuerpo
+  int cuerpoX, cuerpoY, cuerpoW, cuerpoH;
 
-// MANO
-float manitaX, manitaY;
-float manitaW = 350;
-float manitaH = 350;
-float manitaInitialX, manitaInitialY; // posición inicial para reset
-int manitaMove = 100;          // píxeles que se desplazará al click
-boolean manitaClicked = false; // indica que está en movimiento
-int manitaTimer = 0;           // tiempo para reset
-int manitaDuration = 300;
-
-// BOTÓN INVISIBLE
-float botonX, botonY, botonW, botonH;
+  
+  //mano 
+  int manoX, manoY, manoW, manoH;
+  // --- interacción mano ---
+  boolean manoActiva = false;
+  int tiempoMano = 0;
+  int duracionMano = 5000; // 5 segundos
 
 
   // Constructor
   Escena7() {
     iniciar();
+    
+    //IMAGENES   
+      // fondo7= loadImage("fondo7.png");
+      // cuerpo= loadImage("cuerpo.png");
+      // reloj7= loadImage("r7.png");
+      // mano1= loadImage("mano7_1.png");
+      // mano2= loadImage("mano7_2.png");
+      
+    //AUDIOS
+     //audio7 = audioManager.loadFile("esc7.mp3");
+     //susto = audioManager.loadFile("eak.mp3");
+     //exito = audioManager.loadFile("exito.mp3"); 
+     //fallo = audioManager.loadFile("fallo.mp3");
+     //exito = audioManager.loadFile("exito.mp3"); 
+    
+    //SEGUNDA PARTE
+    faldaX= width/2-600;
+    faldaY= height/2;
+    faldaW= 1000;
+    faldaH= 1200;
+    relojX= width/2-200;
+    relojY= height/2 -150;
+    relojW= 300;
+    relojH= 850;
+    manoX= width/2+450;
+    manoY= height/2 -100;
+    manoW= 800;
+    manoH= 750;
+    cuerpoX= width/2+650;
+    cuerpoY= height/2+50;
+    cuerpoW= 500;
+    cuerpoH= 1100;
+
   }
 
   void iniciar() {
@@ -58,140 +103,36 @@ float botonX, botonY, botonW, botonH;
 
     enemies = new ArrayList<Enemy>();
     tiempoAnterior = millis();
-    intervalo = int(random(700, 700)); // primer spawn aleatorio
+    intervalo = int(random(500, 500)); // primer spawn aleatorio
     interactuando = false; // inicializamos el estado
+      // META
+  generarMeta();
+
   }
 
-  void dibujar() {
-    background(200);
-
-if (gameOver) {
-  background(0);
-
-  // Parpadeo rápido (cada 200 ms)
-  if ((millis() / 250) % 2 == 0) {
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(40);
-    text("INTÉNTALO OTRA VEZ", width/2, height/2);
-  }
-
-  if (millis() - tiempoGameOver > duracionGameOver) {
-    estadoGeneral = ESCENA_CREDITOS;
-  }
-  return;
-}
-
-// Sub-escena de interacción
-if (interactuando) {
+void dibujar() {
   background(200);
 
-  // Rectángulo derecho: apoyado en borde inferior, no llega al superior
-  int derechoX = width - rectDerechoW - 100; // 20 px margen derecho
-  int derechoY = height - rectDerechoH;     // apoyado abajo
-  fill(150, 50, 50);
-  rect(derechoX, derechoY, rectDerechoW, rectDerechoH);
+  switch (estadoEscena7) {
 
-  // Rectángulo izquierdo: casi llega al medio horizontal, ocupa de arriba a abajo
-  int izquierdoX = 0;                        // margen izquierdo
-  int izquierdoY = 0;
-  rectIzquierdoH = height;                     // altura completa
-  int izquierdoW = width/2 - 80;              // casi mitad pantalla
-  fill(50, 50, 150);
-  rect(izquierdoX, izquierdoY, izquierdoW, rectIzquierdoH);
-  
-  // BOTÓN INVISIBLE: esquina superior derecha del azul
-botonW = 70;  // ancho del botón
-botonH = 70;  // alto del botón
-botonX = izquierdoX + izquierdoW - botonW;  // esquina superior derecha
-botonY = izquierdoY;                        // arriba
+  case JUEGO:
+    dibujarJuego();
+    break;
 
-if (!manitaClicked && manitaInitialX == 0 && manitaInitialY == 0) {
-  manitaInitialX = width/2 - manitaW/2 + 200; // un poco a la derecha
-  manitaInitialY = height/2 - manitaH/2 + 50;      // vertical centrado
-  manitaX = manitaInitialX;
-  manitaY = manitaInitialY;
-}
+  case INTERACCION:
+    dibujarInteraccion();
+    break;
 
-// MANita: entre los dos rectángulos
-//manitaX = width/2 - manitaW/2 -100;
-//manitaY = height/2 - manitaH/2;
-
-//manitaX = manitaInitialX;
-//manitaY = manitaInitialY;
-
-fill(255, 200, 0); // color distintivo
-rect(manitaX, manitaY, manitaW, manitaH);
-
-// Si MANita está en movimiento por click, regresamos a la posición inicial
-if (manitaClicked) {
-  if (millis() - manitaTimer > manitaDuration) {
-    manitaX = manitaInitialX;
-    manitaY = manitaInitialY;
-    manitaClicked = false;
+  case GAME_OVER:
+    dibujarGameOver();
+    break;
   }
 }
 
-  return; // no dibujamos enemigos ni jugador mientras estamos en esta sub-escena
-}
-
-
-    // ===============================
-    // Comprobar si el jugador salió completamente
-    if (yBottom + ph < 0) {
-      interactuando = true;
-    }
-
-    // ===============================
-    // Generación de enemigos aleatoria
-    if (millis() - tiempoAnterior > intervalo) {
-      Enemy e = new Enemy();
-      e.y = random(0, height - ph); // posición vertical aleatoria
-
-      // Aparece a la izquierda o derecha
-      if (random(1) < 0.5) {
-        e.x = -pw;       // aparece desde la izquierda
-        e.direccion = 1; // se mueve hacia la derecha
-      } else {
-        e.x = width;     // aparece desde la derecha
-        e.direccion = -1; // se mueve hacia la izquierda
-      }
-
-      enemies.add(e);
-      tiempoAnterior = millis();
-      intervalo = int(random(900, 1500)); // nuevo intervalo aleatorio
-    }
-    
-    
-
-    // ===============================
-    // Actualizar enemigos
-    for (int i = enemies.size() - 1; i >= 0; i--) {
-      Enemy e = enemies.get(i);
-      e.update();
-      e.display();
-
-      // Colisión con jugador
-      if (colision(e.x, e.y, pw, ph, xBottom, yBottom, pw, ph)) {
-         gameOver = true;
-          tiempoGameOver = millis();
-       }
-
-
-      // Eliminar enemigos que salieron de la pantalla (lados)
-      if (e.x < -pw || e.x > width) {
-        enemies.remove(i);
-      }
-    }
-
-    // ===============================
-    // Dibujar jugador
-    fill(0, 0, 255);
-    rect(xBottom, yBottom, pw, ph);
-  }
 
   // ===== INPUT TECLADO DENTRO DE LA CLASE =====
-  void teclaPulsada(char keyChar, int keyCode) {
+  void teclaPulsada() {
+    if (estadoEscena7 == JUEGO) {
     if (keyCode == LEFT) {
       xBottom -= speedBottom;
       if (xBottom < 0) xBottom = 0;
@@ -201,26 +142,136 @@ if (manitaClicked) {
     } else if (keyCode == UP) {
       yBottom -= speedBottom;
       // Ya no hay restricción superior para atravesar el borde
+     }
     }
   }
 
   // Input mouse (puede usarlo más adelante)
-  void botonPulsado() {
-  if (interactuando) {
-    if (mouseX > manitaX && mouseX < manitaX + manitaW &&
-        mouseY > manitaY && mouseY < manitaY + manitaH) {
-      manitaX += manitaMove;  // se desplaza hacia la derecha
-      manitaTimer = millis();
-      manitaClicked = true;
-    }
-    if (mouseX > botonX && mouseX < botonX + botonW &&
-    mouseY > botonY && mouseY < botonY + botonH) {
-  estadoGeneral = ESCENA8;
-}
+void ratonPulsado() {
+  if (estadoEscena7 != INTERACCION) return;
+
+  // CLICK EN MANO
+  if (mouseX > manoX - manoW/2 && mouseX < manoX + manoW/2 &&
+      mouseY > manoY - manoH/2 && mouseY < manoY + manoH/2) {
+
+    manoActiva = true;
+    tiempoMano = millis();
+  }
+
+  // CLICK EN RELOJ → siguiente escena
+  if (mouseX > relojX - relojW/2 && mouseX < relojX + relojW/2 &&
+      mouseY > relojY - relojH/2 && mouseY < relojY + relojH/2) {
+
+    exit();//estadoGeneral = ESCENA8; 
   }
 }
 
+void dibujarJuego() {
 
+  // Spawn enemigos
+  if (millis() - tiempoAnterior > intervalo) {
+    Enemy e = new Enemy();
+    e.y = random(0, height - ph);
+
+    if (random(1) < 0.5) {
+      e.x = -pw;
+      e.direccion = 1;
+    } else {
+      e.x = width;
+      e.direccion = -1;
+    }
+
+    enemies.add(e);
+    tiempoAnterior = millis();
+    intervalo = int(random(200, 500));
+  }
+
+  // Enemigos
+  for (int i = enemies.size() - 1; i >= 0; i--) {
+    Enemy e = enemies.get(i);
+    e.update();
+    e.display();
+
+    if (colision(e.x, e.y, pw, ph, xBottom, yBottom, pw, ph)) {
+      estadoEscena7 = GAME_OVER;
+      tiempoGameOver = millis();
+    }
+
+    if (e.x < -pw || e.x > width) {
+      enemies.remove(i);
+    }
+  }
+
+  // Jugador
+  fill(0, 0, 255);
+  rect(xBottom, yBottom, pw, ph);
+  
+  // META
+ if (metaActiva) {
+  fill(0, 255, 0);
+  rect(metaX, metaY, pw, ph);
+ }
+ 
+ if (metaActiva && colision(metaX, metaY, pw, ph,
+                           xBottom, yBottom, pw, ph)) {
+
+  metaActiva = false;
+  estadoEscena7 = INTERACCION;
+ }
+}
+
+
+void dibujarGameOver() {
+  background(0);
+
+  if ((millis() / 250) % 2 == 0) {
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(40);
+    text("INTÉNTALO OTRA VEZ", width/2, height/2);
+  }
+
+  if (millis() - tiempoGameOver > duracionGameOver) {
+    exit();
+  }
+}
+
+void dibujarInteraccion() {
+  background(200);
+  
+  pushStyle();
+  rectMode(CENTER);
+  
+  //falda
+  fill(255,0,0);
+  rect(faldaX, faldaY, faldaW, faldaH);
+  
+  //cuerpo
+  fill(0,255,0);
+  rect(cuerpoX, cuerpoY, cuerpoW, cuerpoH);
+  
+  //reloj
+  fill(255,255,0);
+  rect(relojX, relojY, relojW, relojH);
+
+  // mano
+  if (manoActiva && millis() - tiempoMano < duracionMano) {
+    fill(255, 0, 255); // color activo (ej: rosa)
+  } else {
+    manoActiva = false;
+    fill(100, 255, 100); // color normal
+  }
+  rect(manoX, manoY, manoW, manoH);
+  
+  popStyle();
+
+}
+
+void generarMeta() {
+  metaX = random(0, width - pw);
+  metaY = 10; // parte superior
+  metaActiva = true;
+}
 
   // Colisiones AABB
   boolean colision(float x1, float y1, float w1, float h1,
@@ -233,25 +284,22 @@ if (manitaClicked) {
 
   // ===============================
   // CLASE INTERNA ENEMY
-  class Enemy {
-    float x, y;
-    int direccion; // +1 = va derecha, -1 = va izquierda
+ class Enemy {
+  float x, y;
+  int direccion;     // +1 = derecha, -1 = izquierda
+  float speed;       // NUEVO: velocidad individual
 
-    void update() {
-      x += speedTop * direccion; // movimiento horizontal
-    }
-
-    void display() {
-      fill(0);
-      rect(x, y, pw, ph);
-    }
+  Enemy() {
+    speed = random(1, 5); // velocidad aleatoria por enemigo
   }
-}
 
-void keyPressed() {
-  switch (estadoGeneral) {
-    case ESCENA7:
-      escena7.teclaPulsada(key, keyCode); // le pasamos el evento a la clase
-      break;
+  void update() {
+    x += speed * direccion;
   }
+
+  void display() {
+    fill(0);
+    rect(x, y, pw, ph);
+  }
+ }
 }
