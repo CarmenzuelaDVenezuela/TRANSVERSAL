@@ -9,7 +9,7 @@ final int ESCENA4 = 4;
 final int ESCENA5 = 5;
 final int ESCENA6 = 6;
 final int ESCENA7 = 7;
-final int ESCENA8 = 7;
+final int ESCENA8 = 8;
 final int ESCENA9 = 9;
 final int ESCENA10 = 10;
 final int ESCENA11 = 11;
@@ -17,6 +17,7 @@ final int ESCENA12 = 12;
 final int ESCENA13 = 13;
 final int ESCENA14 = 14;
 final int ESCENA15 = 15;
+final int ESCENA_CREDITOS = 99;
 /**************************************************
         Estados de cada escena
 **************************************************/
