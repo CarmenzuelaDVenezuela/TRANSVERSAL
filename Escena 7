@@ -58,7 +58,7 @@ class Escena7 {
   // --- interacción mano ---
   boolean manoActiva = false;
   int tiempoMano = 0;
-  int duracionMano = 5000; // 5 segundos
+  int duracionMano = 3000; // 3 segundos
 
 
   // Constructor
