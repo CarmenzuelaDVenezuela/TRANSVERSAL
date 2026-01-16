@@ -15,7 +15,7 @@ class Escena8 {
   int aurW = 150;
   int aurH = 350;
   int mujerW = 400;
-  int mujerH = 1080;
+  int mujerH = 1050;
 
   // ===== MOVIMIENTO =====
   float velocidadAur = 2; // movimiento continuo
@@ -38,11 +38,12 @@ class Escena8 {
   AudioPlayer audio8, pillado, disimulo;
 
   Escena8() {
+    
     aurX = 500;
     aurY = height/2 + 100;
 
     mujerX = 200;
-    mujerY = height/2;
+    mujerY = height/2 + 25;
 
     tiempoCambioMujer = millis();
     
