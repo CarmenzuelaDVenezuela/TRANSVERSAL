@@ -17,7 +17,6 @@ final int ESCENA12 = 12;
 final int ESCENA13 = 13;
 final int ESCENA14 = 14;
 final int ESCENA15 = 15;
-final int ESCENA_CREDITOS = 99;
 /**************************************************
         Estados de cada escena
 **************************************************/
@@ -33,3 +32,19 @@ final int E1_ACCION_TRANSICION = 4;
 final int ARRANCANDO_AUDIO = 0;
 final int JUGANDO = 1;
 final int TERMINADO = 2;
+
+/*Estados Escena7*/
+final int JUEGO = 0;
+final int INTERACCION = 1;
+final int GAME_OVER = 2;
+
+/*Estados Escena8*/
+final int MUJER_VERDE = 0;
+final int MUJER_AMARILLA = 1;
+final int MUJER_ROJA = 2;
+final int AUR_MOVIENDO = 0;
+final int AUR_QUIETO = 1;
+final int AUR_PERDIDO = 2;
+final int ESTADO_JUEGO = 0;
+final int ESTADO_GAME_OVER = 1;
+final int ESTADO_VICTORIA = 2;
