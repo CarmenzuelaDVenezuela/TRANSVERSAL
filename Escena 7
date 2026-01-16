@@ -38,6 +38,8 @@ class Escena7 {
   int tiempoGameOver = 0;       // cuando empieza el mensaje
   int duracionGameOver = 4000;  // 4 segundos
   
+  boolean suspenseSonando = false;
+  
   
   //SEGUNDA PARTE
   
@@ -112,6 +114,7 @@ class Escena7 {
 
 void dibujar() {
   background(200);
+  //audio7.loop();
 
   switch (estadoEscena7) {
 
@@ -155,13 +158,15 @@ void ratonPulsado() {
       mouseY > manoY - manoH/2 && mouseY < manoY + manoH/2) {
 
     manoActiva = true;
+    //susto.play();
     tiempoMano = millis();
   }
 
   // CLICK EN RELOJ → siguiente escena
   if (mouseX > relojX - relojW/2 && mouseX < relojX + relojW/2 &&
       mouseY > relojY - relojH/2 && mouseY < relojY + relojH/2) {
-
+   //suspense.stop();
+   //suspenseSonando = false;
     exit();//estadoGeneral = ESCENA8; 
   }
 }
@@ -212,9 +217,9 @@ void dibujarJuego() {
   rect(metaX, metaY, pw, ph);
  }
  
- if (metaActiva && colision(metaX, metaY, pw, ph,
-                           xBottom, yBottom, pw, ph)) {
-
+ if (metaActiva && colision(metaX, metaY, pw, ph, xBottom, yBottom, pw, ph)) {
+  //exito.play();
+  //audio7.stop();
   metaActiva = false;
   estadoEscena7 = INTERACCION;
  }
@@ -223,6 +228,7 @@ void dibujarJuego() {
 
 void dibujarGameOver() {
   background(0);
+  //fallo.play();
 
   if ((millis() / 250) % 2 == 0) {
     fill(255);
@@ -232,39 +238,48 @@ void dibujarGameOver() {
   }
 
   if (millis() - tiempoGameOver > duracionGameOver) {
+    //audio7.stop();
     exit();
   }
 }
 
 void dibujarInteraccion() {
   background(200);
-  
+
+/*  // --- AUDIO SUSPENSE ---
+  if (!suspenseSonando) {
+    suspense.loop();
+    suspense.setGain(-40); // empieza bajo
+    suspenseSonando = true;
+  }
+
+  actualizarSuspensePorDistancia();*/
+
   pushStyle();
   rectMode(CENTER);
-  
-  //falda
+
+  // falda
   fill(255,0,0);
   rect(faldaX, faldaY, faldaW, faldaH);
-  
-  //cuerpo
+
+  // cuerpo
   fill(0,255,0);
   rect(cuerpoX, cuerpoY, cuerpoW, cuerpoH);
-  
-  //reloj
+
+  // reloj
   fill(255,255,0);
   rect(relojX, relojY, relojW, relojH);
 
   // mano
   if (manoActiva && millis() - tiempoMano < duracionMano) {
-    fill(255, 0, 255); // color activo (ej: rosa)
+    fill(255, 0, 255);
   } else {
     manoActiva = false;
-    fill(100, 255, 100); // color normal
+    fill(100, 255, 100);
   }
   rect(manoX, manoY, manoW, manoH);
-  
-  popStyle();
 
+  popStyle();
 }
 
 void generarMeta() {
@@ -272,6 +287,26 @@ void generarMeta() {
   metaY = 10; // parte superior
   metaActiva = true;
 }
+
+/*void actualizarSuspensePorDistancia() {
+
+  // Centro del reloj (rectMode CENTER)
+  float cx = relojX;
+  float cy = relojY;
+
+  // Usamos el mouse como "cursor de acercamiento"
+  float d = dist(mouseX, mouseY, cx, cy);
+
+  // Distancia máxima considerada
+  float distanciaMax = 800;
+  float distanciaMin = 100;
+
+  // Convertimos distancia a volumen (dB)
+  float volumen = map(d, distanciaMax, distanciaMin, -40, 0);
+  volumen = constrain(volumen, -40, 0);
+
+  suspense.setGain(volumen);
+}*/
 
   // Colisiones AABB
   boolean colision(float x1, float y1, float w1, float h1,
