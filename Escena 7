@@ -3,7 +3,7 @@ class Escena7 {
   int estadoEscena7 = JUEGO;
   
   //IMAGENES
-  PImage falda, mano, reloj, fondo7, fondo7_2, reloj7;
+  PImage falda, mano, reloj, fondo7, fondo7_2, reloj7, arb1, arb2;
   
   //AUDIO
   AudioPlayer audio7, fallo, exito, susto, suspense;
@@ -71,6 +71,8 @@ class Escena7 {
       // reloj7= loadImage("r7.png");
       // mano1= loadImage("mano7_1.png");
       // mano2= loadImage("mano7_2.png");
+      // arb1= loadImage("arb1.png");
+      // arb2= loadImage("arb2.png");
       
     //AUDIOS
      //audio7 = audioManager.loadFile("esc7.mp3");
@@ -120,6 +122,8 @@ void dibujar() {
 
   case JUEGO:
     dibujarJuego();
+    rect(0,0,300,1080);
+    rect(width-300,0,300,1080);
     break;
 
   case INTERACCION:
@@ -167,7 +171,7 @@ void ratonPulsado() {
       mouseY > relojY - relojH/2 && mouseY < relojY + relojH/2) {
    //suspense.stop();
    //suspenseSonando = false;
-    exit();//estadoGeneral = ESCENA8; 
+   exit();//estadoGeneral = ESCENA8; 
   }
 }
 
@@ -283,10 +287,14 @@ void dibujarInteraccion() {
 }
 
 void generarMeta() {
-  metaX = random(0, width - pw);
-  metaY = 10; // parte superior
+  float margen = 300; // ancho de los rectángulos laterales
+
+  metaX = random(margen, width - margen - pw);
+  metaY = 70; // parte superior
+
   metaActiva = true;
 }
+
 
 /*void actualizarSuspensePorDistancia() {
 
