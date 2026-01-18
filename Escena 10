@@ -1,0 +1,156 @@
+class Escena10 {
+
+  PImage chica11, fondo11, aur11;
+
+  // Posiciones base y objetivo para animación de entrada
+  float chicaX, chicaY;
+  float chicaTargetX, chicaTargetY;
+  float aurX, aurY;
+  float aurTargetX, aurTargetY;
+
+  int chicaBaseSize = 600;
+  float chicaHoverSize = 660;
+  float chicaSize; // animación de zoom
+
+  boolean hoverChica = false;
+  boolean mostrarMenu = false;
+
+  // Botones menú
+  float btnSiX, btnSiY;
+  float btnNoX, btnNoY;
+  float btnW = 160;
+  float btnH = 60;
+
+  Escena10() {
+    aur11 = loadResizedImage("aur11.png", 900);
+    chica11 = loadResizedImage("chica11.png", chicaBaseSize);
+    fondo11 = loadResizedImage("fondodeco1.png", width);
+
+    // Posiciones finales
+    chicaTargetX = width/2 + 500;
+    chicaTargetY = height/2 + 100;
+    aurTargetX = width/2 - 500;
+    aurTargetY = height/2 + 100;
+
+    // Posiciones iniciales para animación
+    chicaX = width + 150; // entra desde la derecha
+    chicaY = chicaTargetY;
+    aurX = -150; // entra desde la izquierda
+    aurY = aurTargetY;
+
+    chicaSize = chicaBaseSize;
+
+    // Botones menú
+    btnSiX = width/2 - 120;
+    btnSiY = height/2 + 60;
+    btnNoX = width/2 + 120;
+    btnNoY = height/2 + 60;
+  }
+
+  void dibujar() {
+    imageMode(CENTER);
+    image(fondo11, width/2, height/2);
+
+    // Animar posiciones de entrada
+    aurX = lerp(aurX, aurTargetX, 0.05);
+    chicaX = lerp(chicaX, chicaTargetX, 0.05);
+
+    image(aur11, aurX, aurY);
+
+    // Detectar hover
+    detectarHoverChica();
+
+    // Animación de zoom
+    float targetSize = hoverChica ? chicaHoverSize : chicaBaseSize;
+    chicaSize = lerp(chicaSize, targetSize, 0.1);
+
+    // Dibujar chica
+    float ratio = chica11.height / float(chica11.width);
+    image(chica11, chicaX, chicaY, chicaSize, chicaSize*ratio);
+
+    // Dibujar menú si corresponde
+    if (mostrarMenu) {
+      dibujarMenu();
+    }
+  }
+
+  // =============================
+  void detectarHoverChica() {
+    if (mostrarMenu) {
+      hoverChica = false;
+      return;
+    }
+
+    float w = chicaSize;
+    float h = w * (chica11.height / float(chica11.width));
+
+    hoverChica =
+      mouseX > chicaX - w/2 &&
+      mouseX < chicaX + w/2 &&
+      mouseY > chicaY - h/2 &&
+      mouseY < chicaY + h/2;
+  }
+
+  // =============================
+  void dibujarMenu() {
+    rectMode(CENTER);
+    fill(0, 180);
+    rect(width/2, height/2, 520, 300, 20);
+
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(26);
+    text("¿Estás preparado para el siguiente reto?", width/2, height/2 - 70);
+
+    // Botón SI
+    fill(100, 200, 100);
+    rect(btnSiX, btnSiY, btnW, btnH, 12);
+    fill(0);
+    textSize(22);
+    text("SÍ", btnSiX, btnSiY);
+
+    // Botón NO
+    fill(200, 100, 100);
+    rect(btnNoX, btnNoY, btnW, btnH, 12);
+    fill(0);
+    text("NO", btnNoX, btnNoY);
+  }
+
+  // =============================
+  void ratonPulsado() {
+
+    // --- MENÚ ACTIVO ---
+    if (mostrarMenu) {
+
+      // BOTÓN SÍ
+      if (mouseX > btnSiX - btnW/2 && mouseX < btnSiX + btnW/2 &&
+          mouseY > btnSiY - btnH/2 && mouseY < btnSiY + btnH/2) {
+        estadoGeneral = ESCENA11;
+        return;
+      }
+
+      // BOTÓN NO (evasivo)
+      if (mouseX > btnNoX - btnW/2 && mouseX < btnNoX + btnW/2 &&
+          mouseY > btnNoY - btnH/2 && mouseY < btnNoY + btnH/2) {
+        moverBotonNo();
+      }
+
+      return;
+    }
+
+    // --- CLICK EN CHICA ---
+    if (hoverChica) {
+      mostrarMenu = true;
+    }
+  }
+
+  // =============================
+  void moverBotonNo() {
+    // Limites para que el botón NO siempre quede visible
+    float margenX = btnW/2 + 10;
+    float margenY = btnH/2 + 10;
+
+    btnNoX = random(margenX, width - margenX);
+    btnNoY = random(margenY, height - margenY);
+  }
+}
