@@ -2,7 +2,7 @@ class Escena3 {
  
  
     // Imagenes   
-  // PImage fondo3, mano1, mano2, reloj3_1, reloj3_2, reloj3_3, reloj3_4, vasija, mesa2;
+  PImage fondo3, mano1, mano2, reloj3, vasija, mesa3;
  
 
         //Posiciones
@@ -11,9 +11,7 @@ class Escena3 {
   float mano1Y, mano2Y, relojY, vasijaY, mesaY;
 
     // Tamaños
-  float mano1W, mano2W, relojW, vasijaW, mesaW;
-  float mano1H, mano2H, relojH, vasijaH, mesaH;
-
+  int mano1W, mano2W, relojW, vasijaW, mesaW;
   
   // Audio
   //AudioPlayer audio3, sonidoRoto, sonidoAgua;
@@ -33,7 +31,6 @@ class Escena3 {
   // Estados del reloj
   int estadoReloj = 0;
   int totalEstados = 4; // nuevo estado de transición
-  boolean transicionEscena = false;
   
   ArrayList<Jet> jets;
 
@@ -51,15 +48,6 @@ class Escena3 {
 
   Escena3() {
 
-    //Imagenes
-     // mano1= loadImage("ma1.png");
-      // mano2= loadImage("ma2.png");
-      // reloj3_1= loadImage("r3_1.png");
-      // reloj3_2= loadImage("r3_2.png");
-      // reloj3_3= loadImage("r3_3.png");
-      // reloj3_4= loadImage("r3_4.png");
-      // mesa2= loadImage("me2.png");
-
     // Posiciones iniciales
     
     mano1X= width/2+600;
@@ -68,23 +56,26 @@ class Escena3 {
     mesaX= width/2;
     mano1Y= height/2-200;
     mano2Y= height/2-200;
-    relojY= height/2;
+    relojY= height/2+150;
     mesaY= height/2+300;
     vasijaX= width/2;
     vasijaY= height/2-200;
    
     // Tamaños iniciales
     
-    mano1W=  700;
+    mano1W=  620;
     mano2W=  700;
-    relojW=  500;
-    mesaW=  1200;
-    mano1H=  500;
-    mano2H=  500;
-    relojH=  500;
-    mesaH=  500;
-    vasijaW= 700;
-    vasijaH= 700;
+    relojW=  700;
+    mesaW=  2000;
+    vasijaW= 900;
+    
+        //Imagenes
+      mano2= loadResizedImage("mano3_1.png", mano1W);
+      mano1= loadResizedImage("mano3_2.png", mano2W);
+      reloj3= loadResizedImage("r3.png", relojW);
+      mesa3= loadResizedImage("mesa3.png", mesaW);
+      fondo3= loadResizedImage("edc.png", width);
+      vasija= loadResizedImage ("vasija.png", vasijaW);
 
     
     // Audio
@@ -107,8 +98,8 @@ class Escena3 {
   }
 
 void dibujar() {
-  rectMode(CENTER);
-  background(200);
+  imageMode(CENTER);
+  println("intro:", intro, "zoom:", zoomEscena);
   //audio3.loop();
 
   // ZOOM INTRO DE ESCENA (LERP)
@@ -117,11 +108,11 @@ void dibujar() {
     // ANIMACIÓN DE MANOS (ligada a la intro)
 
     separacionManos = lerp(separacionManos, separacionFinal, 0.03);
-    rotMano1 = lerp(rotMano1, -rotFinal, 0.03);
-    rotMano2 = lerp(rotMano2,  rotFinal, 0.03);
+    rotMano1 = lerp(rotMano1, -rotFinal, 0.05);
+    rotMano2 = lerp(rotMano2,  rotFinal, 0.05);
 
       // corte cuando ya es casi 1
-    if (abs(zoomEscena - 1.0) < 0.0005) {
+    if (abs(zoomEscena - 1.0) < 0.01) {
       zoomEscena = 1.0;
       intro = false;
     }
@@ -129,6 +120,8 @@ void dibujar() {
 
   // "CÁMARA"
   pushMatrix();
+  
+  image(fondo3, width/2, height/2);
 
   // Zoom desde el centro del reloj (más cinematográfico)
   translate(relojX, relojY);
@@ -138,56 +131,53 @@ void dibujar() {
   // ================= ESCENA =================
 
   // MESA
-  fill(#A5702F);
-  rect(mesaX, mesaY, mesaW, mesaH);
+  image(mesa3, mesaX, mesaY);
 
   // MANO 1 (derecha)
   pushMatrix();
   translate(mano1X + separacionManos, mano1Y);
   rotate(-rotMano1);
-  fill(0, 0, 255);
-  rect(0, 0, mano1W, mano1H);
+  image(mano1, 0, 0);
   popMatrix();
 
   // MANO 2 (izquierda)
   pushMatrix();
   translate(mano2X - separacionManos, mano2Y);
   rotate(-rotMano2);
-  fill(0, 0, 255);
-  rect(0, 0, mano2W, mano2H);
+  image(mano2, 0, 0);
   popMatrix();
   
   //VASIJA
   pushMatrix();
   translate(vasijaX, vasijaY);
-  fill(#69A74A);
-  rect(0, 0, vasijaW, vasijaH);
+  image(vasija, 0, 0);
   popMatrix();
-
+ pushStyle();
   // RELOJ (según estado)
 switch (estadoReloj) {
   case 0:
-    fill(0, 255, 0); // estado normal
     break;
 
   case 1:
+  tint(255,255,0);
   //sonidoRoto.play();
-    fill(255, 200, 0); // estado 2 (ej: activo)
+  //sonidoAgua.loop();
     break;
 
   case 2:
+  noTint();
+  tint(255,0,0);
     //sonidoRoto.play();
-    fill(255, 0, 0); // estado 3 (ej: roto / alerta)
     break;
     
   case 3:
+  noTint();
+  tint(100);
     //sonidoRoto.play();
-    fill(100); // transición
     break;
 }
-
-  rect(relojX, relojY, relojW, relojH);
-
+  image(reloj3, relojX, relojY);
+ popStyle();
   // ==========================================
 
   popMatrix();
@@ -267,7 +257,7 @@ switch (estadoReloj) {
 
 
 void ratonPulsado() {
-  if (!intro && !filling && mouseSobreReloj()) {
+  if (!intro && !filling) {
     estadoReloj++;
     //sonidoAgua.play();
 
@@ -283,18 +273,6 @@ void ratonPulsado() {
   }
 }
 
-
-
-boolean mouseSobreReloj() {
-  // Ajuste por zoom de escena
-  float mx = (mouseX - relojX) / zoomEscena + relojX;
-  float my = (mouseY - relojY) / zoomEscena + relojY;
-
-  return mx > relojX - relojW/2 &&
-         mx < relojX + relojW/2 &&
-         my > relojY - relojH/2 &&
-         my < relojY + relojH/2;
-}
 
 // ================= AGUA =================
 void drawWater() {
