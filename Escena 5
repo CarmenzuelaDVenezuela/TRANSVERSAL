@@ -1,30 +1,18 @@
 ArrayList<DustParticle> dust = new ArrayList<DustParticle>();
 
 
-class Escena5 {  /* Viejo se ilumina por detras de forma 
-gradual y ciclica, como si la luz fuera y viniera, cuando le
-das click al viejo, se ilumina de forma constante y te da
-instrucciones (escritas o narradas), cuando le das al reloj, 
-se disminuye el audio y se hace yun fundido hacia la otra 
-escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
-
-  // Estado
-  int estadoEscena5;
+class Escena5 {  
   
   // Imagenes   
-  // PImage fondo5, viejo, reloj5, mesa5;
+  PImage fondo5, viejo, reloj5, mesa5;
  
 
   // Posiciones
   float viejoX, mesa5X, reloj5X;
   float viejoY, mesa5Y, reloj5Y;
-
-  // Tamaños
-  float viejoW, aur5W, mesa5W, reloj5W;
-  float viejoH, aur5H, mesa5H, reloj5H;
   
   // Audio
-  AudioPlayer audio5, divinidad;
+  AudioPlayer brisa, audio5, divinidad;
   
   //TRANSICION INICIO
   int rows = 140;
@@ -43,13 +31,7 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
   float relojScale = 1.0;
   float relojScaleTarget = 1.0;
   float relojScaleSpeed = 0.1;
-  
-  boolean hoverViejo = false;
 
-  float haloViejoAlpha = 0;
-  float haloViejoAlphaTarget = 0;
-  float haloViejoFadeSpeed = 0.08;
-  
   boolean zoomReloj = false;
   float relojZoom = 1.0;
   float relojZoomSpeed = 0.35;   // rapidez del zoom
@@ -64,15 +46,8 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
   reloj5X= width/2;
   viejoY= height/2+50;
   mesa5Y= height/2+500;
-  reloj5Y= height/2+275;
+  reloj5Y= height/2+385;
      
-    //Tamaños
-  viejoW= 500;
-  mesa5W= 900;
-  reloj5W= 400;
-  viejoH= 1000; 
-  mesa5H= 700; 
-  reloj5H= 200;
   
    //TRANSICION INICIO
     rowHeight = height / float(rows);
@@ -88,49 +63,31 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
    
        // Audio
      //audio5 = audioManager.loadFile("esc5.mp3");
-      //divinidad = audioManager.loadFile("dios.mp3");   
+     //divinidad = audioManager.loadFile("dios.mp3");
+      
+       fondo5= loadResizedImage("fondotorre.png", width+100);
+       viejo= loadResizedImage("viejo.png",1000);
+       reloj5= loadResizedImage("r5.png",400);
+       mesa5= loadResizedImage("mesa5.png",1100);
+
   }
   
   void dibujar(){
-    //audio5.loop();
-    background(200);
-    
-        
+    //audio5.loop();     
     pushStyle();
-    rectMode(CENTER);
+    imageMode(CENTER);
     
-   // HALO SIMPLE DETRÁS DEL VIEJO
-  if (haloViejoAlpha > 1) {
-    pushStyle();
-    noStroke();
-    fill(255, 255, 0, haloViejoAlpha);
-    ellipse(viejoX, viejoY-250, viejoW * 1.1, viejoH * 0.6);
-  popStyle();
-}
+    image(fondo5, width/2, height/2);
+    
 
     //VIEJO
-    fill(0,0,255);
-    rect(viejoX, viejoY, viejoW, viejoH);
+    image(viejo, viejoX, viejoY);
     
     //MESA
-    fill(#986F3C);
-    rect(mesa5X, mesa5Y, mesa5W, mesa5H);   
+    image(mesa5, mesa5X, mesa5Y);   
     
     checkHoverReloj();
-    
-    checkHoverViejo();
-
-    if (hoverViejo) {
-      //divinidad.play();
-      haloViejoAlphaTarget = 140;
-    } else {
-      //divinidad.stop();
-      haloViejoAlphaTarget = 0;
-    }
-
-    haloViejoAlpha = lerp(haloViejoAlpha, haloViejoAlphaTarget, haloViejoFadeSpeed);
-
-    
+  
     if (hoverReloj) {
       cursor(HAND);
       relojScaleTarget = 1.05;
@@ -153,13 +110,14 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
     float escalaFinal = relojScale * relojZoom;
     scale(escalaFinal);
 
+ pushStyle();
     if (hoverReloj) {
-      fill(255, 220, 80);
-    } else {
-    fill(255, 255, 0);
-  }
-
-    rect(0, 0, reloj5W, reloj5H);
+      tint(255, 220, 80);
+    } else{
+      noTint();
+    }
+    image(reloj5, 0, 0);
+ popStyle();
   popMatrix();
 
 
@@ -174,7 +132,8 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
   }
   
  void updateWind() {
-
+   //brisa.loop();
+   
   // Activar filas progresivamente
   if (frameCount - lastRowFrame > rowDelay && currentRow < rows - 1) {
     currentRow++;
@@ -215,6 +174,7 @@ escena... TRES RECTS, VIEJO AZUL, MESA MARRON, RELOJ AMARILLO*/
       dust.remove(i);
     }
   }
+  //brisa.stop();
 }
 
 void ratonPulsado() {
@@ -224,21 +184,12 @@ void ratonPulsado() {
 }
 
 
-void checkHoverViejo() {
-  hoverViejo =
-    mouseX > viejoX - viejoW/2 &&
-    mouseX < viejoX + viejoW/2 &&
-    mouseY > viejoY - viejoH/2 &&
-    mouseY < viejoY;   // SOLO mitad superior
-}
-
-
 void checkHoverReloj() {
   hoverReloj =
-    mouseX > reloj5X - reloj5W/2 &&
-    mouseX < reloj5X + reloj5W/2 &&
-    mouseY > reloj5Y - reloj5H/2 &&
-    mouseY < reloj5Y + reloj5H/2;
+    mouseX > reloj5X - reloj5.width/2 &&
+    mouseX < reloj5X + reloj5.width/2 &&
+    mouseY > reloj5Y - reloj5.height/2 &&
+    mouseY < reloj5Y + reloj5.height/2;
 }
 
 boolean arenaTerminada() {
