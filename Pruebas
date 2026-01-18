@@ -47,7 +47,7 @@ void setup() {
   escena12 = new Escena12();
   escena13 = new Escena13();
   escenaCreditos = new EscenaCreditos();
-  estadoGeneral = ESCENA7;
+  estadoGeneral = ESCENA_DE_CARGA;
  // flechaDerecha = loadImage("flechaDerecha.png");
 }
 
