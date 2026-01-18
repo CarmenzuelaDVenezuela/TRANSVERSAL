@@ -1,328 +1,192 @@
-/*
 class Escena2 {
-  
-  //PRIMERA PARTE
+
+  // ===============================
+  // PRIMERA PARTE
+  // ===============================
   Jugador jugador;
   int estadoEscena;
-  AudioPlayer audio2, sonidoCaminando, sonidoCrash, sonidoExito, sonidoFallo;
-  
-  // SEGUNDA PARTE
-        //Posiciones
-    //float fondoX, fondoY;
+
+  boolean gameOver = false;
+  int tiempoGameOver = 0;
+  int duracionGameOver = 4000;
+
+  // ===============================
+  // SEGUNDA PARTE – POSICIONES
+  // ===============================
   float aur2X, mesaX, relojX, persEgX;
   float aur2Y, mesaY, relojY, persEgY;
 
-    // Posiciones objetivo
   float aur2X_T, mesaX_T, relojX_T, persEgX_T;
 
-    // Tamaños
-  float aur2H, mesaH, relojH, persEgH;
-  float aur2W, mesaW, relojW, persEgW;
-  
-    // Imagenes
-  //PImage aur2, reloj2, fondo2, persEg, fondo2;
+  // ===============================
+  // IMÁGENES
+  // ===============================
+  PImage aur2, reloj2, fondo2, persEg, mesa, laberinto, camino;
 
-
-    // TRANSICIONES
-
+  // ===============================
+  // TRANSICIONES
+  // ===============================
   float flashAlpha = 255;
-  boolean flashActivo = true;
+  boolean flashActivo = false;
 
-    // Zoom
   float zoom = 1.0;
   float zoomTarget = 1.0;
   boolean relojClick = false;
 
   boolean relojHover = false;
-
   float relojScale = 1.0;
   float relojScaleTarget = 1.0;
 
   boolean cambiarEscena = false;
-  float zoomEpsilon = 0.01; // margen de error
-
-
   
-  Escena2() { //CONSTRUCTOR
-    jugador = new Jugador(600, 50);
-   // sonidoFondo = audioManager.loadFile("esc2.mp3");
-   // sonidoCaminando = audioManager.loadFile("pisadas.mp3");
-   // sonidoCrash = audioManager.loadFile("crash.mp3");
-   // sonidoExito = audioManager.loadFile("exito.mp3");
-   // sonidoFallo = audioManager.loadFile("fallo.mp3");
+  //audio
+  AudioPlayer audio2, sonidoCaminando, sonidoCrash, sonidoExito;
+
+  // ===============================
+  // CONSTRUCTOR
+  // ===============================
+  Escena2() {
+
+    jugador = new Jugador(50, 950);
     estadoEscena = ARRANCANDO_AUDIO;
+
+    laberinto = loadResizedImage("laberinto.png", width);
+    camino    = loadResizedImage("camino.png", width);
+
+    // audio2 = audioManager.loadFile("esc2.mp3"); 
+    // sonidoCaminando = audioManager.loadFile("pisadas.mp3"); 
+    // sonidoCrash = audioManager.loadFile("crash.mp3"); 
+    // sonidoExito = audioManager.loadFile("exito.mp3"); 
     
-    aur2=
-    reloj2=
-    mesa=
-    persEg=
-    
-     // POSICIONES OBJETIVO
-  aur2X_T = width/2 - 500;
-  mesaX_T = width/2 + 100;
-  relojX_T = width/2 + 120;
-  persEgX_T = width/2 + 520;
-
-  aur2Y = height/2 +100;
-  mesaY = height/2 +500;
-  relojY = height/2;
-  persEgY = height/2 +50;
-
-    // POSICIONES INICIALES (un poco más a la izquierda)
-  aur2X = aur2X_T - 150;
-  mesaX = mesaX_T - 150;
-  relojX = relojX_T - 150;
-  persEgX = persEgX_T - 150;
-
-    // TAMAÑOS
-  aur2H = 1100;
-  mesaH = 700;
-  relojH = 400;
-  persEgH = 1000;
-
-  aur2W = 500;
-  mesaW = 800;
-  relojW = 300;
-  persEgW = 400; 
   }
+
+  // ===============================
+  // DIBUJO
+  // ===============================
   void dibujar() {
-    switch(estadoEscena) {
+
+    imageMode(CENTER);
+
+    switch (estadoEscena) {
+
     case ARRANCANDO_AUDIO:
-      sonidoFondo.loop();
-      estadoEscena= JUGANDO;
+    //audio2.loop();
+      estadoEscena = JUGANDO;
       break;
+
     case JUGANDO:
+      image(camino, width/2, height/2);
+      image(laberinto, width/2, height/2);
       jugador.dibujar();
       break;
-    case TERMINADO:
-      jugador.dibujar(); //NO SE DEVERIA DIBUJAR?
-      //estadoJugador es ENCONTRADO
-    // Movimiento suave con lerp
-  aur2X = lerp(aur2X, aur2X_T, 0.01);
-  mesaX = lerp(mesaX, mesaX_T, 0.025);
-  relojX = lerp(relojX, relojX_T, 0.02);
-  persEgX = lerp(persEgX, persEgX_T, 0.04);
-
-    // Zoom suave
-  zoom = lerp(zoom, zoomTarget, 0.05);
-  relojScale = lerp(relojScale, relojScaleTarget, 0.1);
-
-  pushMatrix();
-
-    // ZOOM CENTRADO EN EL RELOJ
-  translate(relojX, relojY);
-  scale(zoom);
-  translate(-relojX, -relojY);
-
-    // PERSONAJE SECUNDARIO
-  fill(0, 0, 255);
-  rect(persEgX, persEgY, persEgW, persEgH);
-
-    // MESA
-  fill(#A5702F);
-  rect(mesaX, mesaY, mesaW, mesaH);
-
-    // RELOJ (hover visual)
-  if (relojHover) {
-    fill(0, 220, 0);
-  } else {
-    fill(0, 255, 0);
-  }
-
-  pushMatrix();
-  translate(relojX, relojY);
-  scale(relojScale);
-  rect(0, 0, relojW, relojH);
-  popMatrix();
-
-    // PERSONAJE PRINCIPAL
-  fill(255, 0, 0);
-  rect(aur2X, aur2Y, aur2W, aur2H);
-
-  popMatrix();
-
-
-    // FLASH DE LUZ INICIAL
-  flashInicio();
-  
- if (relojClick && !cambiarEscena) {
-   if (abs(zoom - zoomTarget) < zoomEpsilon) {
-    cambiarEscena = true;
-    //sonidoFondo.stop();
-    estadoGeneral = ESCENA3;
-  }
-}
-      break;
     }
   }
+
+  // ===============================
+  // EVENTOS
+  // ===============================
   void teclaPulsada() {
-    jugador.teclaPulsada();
-  }
-  void teclaLevantada() {
-    jugador.teclaLevantada();
-  }
-  
-  void flashInicio() {
-  if (flashActivo) {
-    fill(255, flashAlpha);
-    rect(width/2, height/2, width, height);
-    flashAlpha -= 5;
-
-    if (flashAlpha <= 0) {
-      flashActivo = false;
+    if (estadoEscena == JUGANDO) {
+      jugador.mover(keyCode);
     }
   }
-}
-   void rotonDetectado() {
-  relojHover =
-    mouseX > relojX - relojW/2 &&
-    mouseX < relojX + relojW/2 &&
-    mouseY > relojY - relojH/2 &&
-    mouseY < relojY + relojH/2;
 
-  if (relojHover) {
-    cursor(HAND);
-    relojScaleTarget = 1.05;
-  } else {
-    cursor(ARROW);
-    relojScaleTarget = 1.0;
-  }
-}
-
-   void ratonPulsado() {
-  if (relojHover && !cambiarEscena) {
-    relojClick = true;
-    zoomTarget = 2.0;
-  }
-}
-
-
+  // ===============================
+  // CLASE JUGADOR
+  // ===============================
   class Jugador {
-    static final int BUSCANDO = 1;
-    static final int ENCONTRADO = 2;
-    static final int ERROR = 3;
-    int posX, posY;
-    int velX, velY;
-   // PImage camino, imgPers, fondoLab, marco;
-    boolean crash;
-    int estadoJugador ;
 
-    Jugador(int x, int y) {
-      posX = x ;
-      posY = y ;
-      velX = 5;
-      velY = 5;
-      crash = false;
-      //fondoLab = loadImage("fondoLab.jpg");
-      //fondoLab.resize(1920, 1080);// 1280, 720
-      //camino = loadImage("cc.jpg");
-      //camino.resize(1920, 1080);
-      //imgPers = loadImage ("jugador.png");
-      //marco = loadImage("MARCOTEXTO.png");
-      estadoJugador = BUSCANDO;
-    }
+    int x, y;
+    int paso = 5;
 
-    void dibujar() {
-       color c = camino.get(mouseX, mouseY);//Para pinchar y ver el color del punto pinchado en la consola. Hay que dibujar el mapa de color
-       println(mouseX, mouseY,"R"+ (red(c)+" G" +green(c)+" B" + blue(c)+" "));
-      pushStyle();
-      image(fondoLab, 0, 0);
-      //image(camino, 0, 0);//Para ver el mapa de color
-      imageMode(CENTER);
-      image(imgPers, posX, posY, 70, 70);
-      image(marco, 1500, 80, 500, 150);
-      textSize(13);
-      textAlign(CENTER);
-      fill(0);
-      text("Encuentra la luz", 1500, 80);
-      popStyle();
-      switch(estadoJugador) {
-      case BUSCANDO:
-        break;
-      case ENCONTRADO:
-        pushStyle();
-        fill(255);
-        textSize(50);
-        textAlign(CENTER);
-        if (frameCount %60<20) {
-          text("Aquí está", width/2, height/2);
-        }
-        popStyle();
-        sonidoExito.play();
-        break;
-      case ERROR:
-        pushStyle();
-        //imagen de derrota
-        fill(255);
-        textSize(50);
-        textAlign(CENTER);
-        if (frameCount %60<20) {
-          text("Prueba de nuevo, jaja", width/2, height/2);
-        }
-        popStyle();
-        sonidoFallo.play();
-        if (sonidoFallo.isPlaying()) {} else estadoJugador = BUSCANDO;
-        break;
-      }
-    }
+    PImage aurNormal;
+    PImage aurChoque;
+    PImage aurMeta;
 
-    void avanza() {
-      if (estadoJugador == BUSCANDO) {
-        int nuevaPosX = posX + velX;
-        int nuevaPosY = posY + velY;
-        color c = camino.get(nuevaPosX, nuevaPosY);
-        //println("-", mouseX, mouseY, "R"+ (red(c)+" G" +green(c)+" B" + blue(c)+" "));//ver color en el que se pincha en el mapa de color
-        if ( red(c)>=252 && red(c)<=255 && green(c)>=240 && green(c)<=245 && blue(c)>=0 && blue(c)<=5 ) {
-          posX = nuevaPosX;
-          posY = nuevaPosY;
-          crash = false;
-          //println(frameCount+"   Amarillo   ");
-        }
-        if ( red(c)>=60 && red(c)<=65 && green(c)>=70 && green(c)<=75 && blue(c)>=200 && blue(c)<=206) {
-          posX = nuevaPosX;
-          posY = nuevaPosY;
-          crash=false;
-          //println(frameCount+"   Azul   ");
-          estadoJugador=ERROR;
-          estadoEscena = JUGANDO;
-        }
-        if ( red(c)>=250 && red(c)<=255 && green(c)>=250 && green(c)<=255 && blue(c)>=250 && blue(c)<=255 ) {//&& estadoJugador==BUSCANDO
-          posX = nuevaPosX;
-          posY = nuevaPosY;
-          crash=false;
-          //println(frameCount+"   Blanco   ");
-          estadoJugador = ENCONTRADO;
-          estadoEscena = TERMINADO;
-        }
-      }
-    }
+    int estadoJugador = 0; 
 
-    void teclaPulsada() {
-      if (keyCode == LEFT) {//hacia la izquierda
-        velX= -5;
-        avanza();
-      }
-      if (keyCode == RIGHT) {//hacia la derecha
-        velX=5;
-        avanza();
-      }
-      if (keyCode == UP) {//hacia arriba
-        velY =-5;
-        avanza();
-      }
-      if (keyCode == DOWN) {//hacia abajo
-        velY = 5;
-        avanza();
-      }
-    }
+    int tiempoEstado = 0;
+    int duracionEstado = 2000; // 2 segundos visibles
 
-    void teclaLevantada() {
-      if ( keyCode == LEFT ||keyCode == RIGHT ) {//Horizontal
-        velX=0;
+
+Jugador(int x, int y) {
+  this.x = x;
+  this.y = y;
+
+  aurNormal = loadImage("aurlab1.png");
+  aurChoque = loadImage("aurlab3.png");
+  aurMeta   = loadImage("aurlab2.png");
+}
+
+
+void dibujar() {
+
+  if (estadoJugador == 0) {
+    image(aurNormal, x, y);
+  } 
+  else if (estadoJugador == 1) {
+    image(aurChoque, x, y);
+  } 
+  else if (estadoJugador == 2) {
+    image(aurMeta, x, y);
+  }
+
+  // Control del tiempo
+  if (estadoJugador != 0) {
+    if (millis() - tiempoEstado > duracionEstado) {
+
+      if (estadoJugador == 1) {
+        // volver a estado normal tras choque
+        estadoJugador = 0;
       }
-      if (keyCode == UP || keyCode == DOWN) {//Vertical
-        velY=0;
+
+      if (estadoJugador == 2) {
+        //audio2.stop();// pasar de escena tras meta
+        estadoGeneral = ESCENA2_5;
       }
     }
   }
-}*/
+}
+
+void mover(int tecla) {
+
+  if (estadoJugador != 0) return; 
+  //sonidoCaminando.play();
+
+  int nx = x;
+  int ny = y;
+
+  if (tecla == LEFT)  nx -= paso;
+  if (tecla == RIGHT) nx += paso;
+  if (tecla == UP)    ny -= paso;
+  if (tecla == DOWN)  ny += paso;
+
+  nx = constrain(nx, 0, width-1);
+  ny = constrain(ny, 0, height-1);
+
+  color c = camino.get(nx, ny);
+
+  boolean esCamino =
+    red(c) > 200 &&
+    green(c) < 50 &&
+    blue(c) < 50;
+
+  if (esCamino) {
+    x = nx;
+    y = ny;
+
+    if (x >= width - 50) {
+      //sonidoExito.play();
+      estadoJugador = 2;
+      tiempoEstado = millis();
+    }
+
+  } else {
+    // sonidoCrash.play();
+    estadoJugador = 1;
+    tiempoEstado = millis();
+  }
+}
+
+  }
+}
