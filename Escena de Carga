@@ -1,175 +1,152 @@
-/* El dedo sera un sprite que este coordinado con el reloj,
-las agujas se haran por rotacion siguiendo los modelos de
-la plantilla, se realizara una tapa del reloj para que se
-rompa cuando este se vuelva loco*/
-
-
 class EscenaDeCarga {
 
-  // VARIABLES
-  //Datos 
+  // ===== VARIABLES =====
   float cx, cy;
   float radio;
 
+  float factor = 1.01;
+
+  PImage fondo, relojIn, aguja1, aguja2;
+
   float angulo = 0;
-  float velocidadBase = 0.0015;   // giro lento constante inicial
-  float velocidad = 0.002;   // velocidad inicial muy baja
-  float factor = 1.01;       // factor exponencial
-  
-  //PImage fondo, relojIn, aguja1, aguja2;
 
-  boolean activo = false;           //boolean para controlar los clicks
-  
-  int ultimoClick = 0;          //variable para guardar el tiempo del ultimo click
-  int intervaloDobleClick = 300; // milisegundos
-  int tiempoDobleClick = -1;   // momento en que ocurre el doble click
+  // Velocidades
+  float velocidadBase = 0.0015;   // velocidad inicial fija
+  float velocidad = velocidadBase;
+
+  // Aceleración exponencial
+  float factorAceleracion = 1.02; // cuanto mayor, más agresiva
+  boolean acelerando = false;
   int tiempoInicioAceleracion = -1;
+  int duracionAceleracion = 8000; // 5 segundos
+  boolean escenaCambiada = false;
 
-  //Audio
-  //AudioManager audio, audioAcc, caricia;
-  
-  //Animación
+
+  int ultimoClick = 0;
+  int intervaloDobleClick = 300;
+
+  // ===== ANIMACIÓN =====
   final int ANIM_FPS = 8;
   final int FRAME_INTERVAL = 1000 / ANIM_FPS;
-  int numFrames = 6;
+  int numFrames = 5;
   int currentFrame = 0;
   PImage[] images = new PImage[numFrames];
   boolean animPlaying = false;
   boolean animFinished = false;
   int lastFrameTime = 0;
 
-  EscenaDeCarga() {  //CONSTRUCTOR
-    cx = width - width/4;
+  // ===== CONSTRUCTOR =====
+  EscenaDeCarga() {
+    cx = width - width / 4;
     cy = height / 2;
-    radio = min(width * 2, height * 2) * 0.35;
-    
-    //Audio
-    //audio = audioManager.loadFile("carga.mp3")
-    //audioAcc = audioManager.loadFile("acceleracion.mp3")
-    
-    //Imagenes
-    //fondo= loadImage(edc.png);
-    //relojIn= loadImage(relojIn.png);
-    //aguja1= loadImage(aguja1.png);
-    //aguja2= loadImage(aguja2.png);
-    
-      for (int i = 0; i < numFrames; i++) {
-    String imageName = "PT_anim" + nf(i, 4) + ".gif";
-    images[i] = loadImage(imageName);
-   }
-  }
+    radio = min(width, height) * 0.35;
 
-  void dibujar() {  //LO QUE SE VE
-    background(230);
-//audio.loop();
-  updateAnimation();
-  actualizar();
-  dibujarReloj();
-  drawAnimation();
-  
-   // ⏱️ cambio de escena tras 10 segundos de aceleración
-  if (activo && tiempoInicioAceleracion != -1) {
-    if (millis() - tiempoInicioAceleracion >= 10000) {
-      //audio.stop();
-      estadoGeneral = ESCENA1; 
+    imageMode(CENTER);
+
+    fondo   = loadResizedImage("edc.png", width);
+    relojIn = loadResizedImage("relojc.png", 1000);
+    aguja1  = loadResizedImage("aguja1.png", 1000);
+    aguja2  = loadResizedImage("aguja2.png", 1000);
+
+    for (int i = 0; i < numFrames; i++) {
+      images[i] = loadResizedImage("mano" + nf(i, 4) + ".png",1200);
     }
   }
-}
-
+  
 void actualizar() {
+  angulo += velocidad;
 
-  if (activo) {
-    //audio. shiftVolume(80,25, 3000)
-    //audioAcc.play();
-    velocidad *= factor;
-    angulo += velocidad;
-    velocidad = min(velocidad, 0.5);
-  } else {
-    angulo += velocidadBase;
+  if (acelerando) {
+    velocidad *= factorAceleracion; // aceleración exponencial
   }
 }
 
 
-void dibujarReloj() {  //TODO LO QUE SE VE REFERENTE AL RELOJ
-    pushStyle();
-  // === CÍRCULO ROTANDO LENTO Y ANTIHORARIO ===
+
+  // ===== DRAW =====
+  void dibujar() {
+    image(fondo,width/2,height/2);
+    
+    actualizar();
+    updateAnimation();
+
+    dibujarReloj();
+    drawAnimation();
+    
+    if (acelerando && !escenaCambiada) {
+  if (millis() - tiempoInicioAceleracion >= duracionAceleracion) {
+    estadoGeneral=ESCENA1;
+  }
+}
+
+  }
+
+  // ===== RELOJ =====
+void dibujarReloj() {
+
+  image(relojIn, cx, cy);
+
+  // ===== AGUJA LARGA =====
   pushMatrix();
-  translate(cx, cy);
+  translate(cx+600, cy);   // este será el punto de rotación
+  rotate(angulo);
 
-  // rotación proporcional, más lenta y contraria
-  rotate(-angulo * 0.2);
-
-  stroke(0);
-  strokeWeight(4);
-  fill(245);
-  ellipse(0, 0, radio * 2, radio * 2);
+  imageMode(CORNER);
+  image(aguja1, -aguja1.width, -aguja1.height / 2);
 
   popMatrix();
 
-  // === AGUJAS (sin rotación global) ===
-  stroke(0);
+  // ===== AGUJA CORTA =====
+  pushMatrix();
+  translate(cx+750, cy);
+  rotate(angulo * 0.6);
 
-  // Aguja larga
-  strokeWeight(3);
-  line(cx, cy,
-       cx + cos(angulo) * radio * 0.85,
-       cy + sin(angulo) * radio * 0.85);
+  imageMode(CORNER);
+  image(aguja2, -aguja2.width, -aguja2.height / 2);
 
-  // Aguja corta
-  strokeWeight(6);
-  line(cx, cy,
-       cx - cos(angulo * 0.6) * radio * 0.55,
-       cy + sin(angulo * 0.6) * radio * 0.55);
-    popStyle();
-}
+  popMatrix();
 
-  // CLICK
-void botonPulsado() {
-  int ahora = millis();
-
-  if (!animPlaying && ahora - ultimoClick < intervaloDobleClick) {
-    animPlaying = true;
-    animFinished = false;
-    currentFrame = 0;
-    lastFrameTime = millis();
-  }
-
-  ultimoClick = ahora;
+  imageMode(CENTER); // restaurar
 }
 
 
-void updateAnimation() {
-  if (!animPlaying || animFinished) return;
 
-  if (millis() - lastFrameTime >= FRAME_INTERVAL) {
-    lastFrameTime = millis();
+  // ===== INPUT =====
+  void botonPulsado() {
+    int ahora = millis();
 
-    // 👉 Frame 4 (índice 3) → inicia reloj
-    if (currentFrame == 3 && !activo) {
-      activo = true;
+    if (!animPlaying && ahora - ultimoClick < intervaloDobleClick) {
+      animPlaying = true;
+      animFinished = false;
+      currentFrame = 0;
+      lastFrameTime = millis();
     }
 
-    currentFrame++;
+    ultimoClick = ahora;
+  }
 
-    // Fin de animación
-    if (currentFrame >= numFrames) {
-      currentFrame = numFrames - 1;
-      animFinished = true;
-      animPlaying = false;
+  // ===== ANIMACIÓN =====
+  void updateAnimation() {
+    if (!animPlaying || animFinished) return;
+
+    if (millis() - lastFrameTime >= FRAME_INTERVAL) {
+      lastFrameTime = millis();
+      currentFrame++;
+
+      if (currentFrame == 3 && !acelerando) {
+          acelerando = true;
+          tiempoInicioAceleracion = millis(); // ⏱ inicio
+      }
+
+      if (currentFrame >= numFrames) {
+        currentFrame = numFrames - 1;
+        animFinished = true;
+        animPlaying = false;
+      }
     }
   }
-  
-  if (currentFrame == 3 && !activo) {
-  activo = true;
-  velocidad = velocidadBase;
-  tiempoInicioAceleracion = millis(); // ⏱️ empieza el conteo
-}
 
-}
-
-void drawAnimation() {
-  imageMode(CENTER);     
-  image(images[currentFrame], width / 2, height / 2);
- }
-
+  void drawAnimation() {
+    image(images[currentFrame], width / 2-500, height / 2+200);
+  }
 }
