@@ -1,21 +1,16 @@
+
 class Escena1 {  
 
   // Estado
   int estadoEscena1;
   
   // Imagenes   
-  // PImage fondo1, col1, col2, aur1, time1;
+  PImage fondo1, col1, col2, col3, col4, aur1, time1;
  
 
   // Posiciones
-  float posColY, posCol1X, posCol2X;
+  float posColY, posCol1X, posCol2X, posCol3X, posCol4X;
   float posPersY, posAurX, posTimeX, posFondoX;
-
-  // Tamaños
-  float hCol1, wCol1;
-  float hCol2, wCol2;
-  float hAur, wAur;
-  float hTime, wTime;
   
   // Audio
   AudioPlayer audio1, dial1, dial2, audTrans;
@@ -41,73 +36,61 @@ class Escena1 {
   float rojoX() { return posTimeX + 300; }
   float rojoY() { return posPersY + 85; }
 
-
   Escena1() {
 
     estadoEscena1 = E1_ACCION_INICIAL;
-    
-    //Imagenes
-     //fondo1 = loadImage("esc1.png");
-      //col1 = loadImage("c1.png");
-      //col2 = loadImage("c2.png");
-      //aur1 = loadImage("a1.png");
-      //time1 = loadImage("t1.png");
 
     // Posiciones iniciales
     posColY = height/2;
     posCol1X = width/2 + 200;
     posCol2X = width/2 + 50;
+    posCol3X = width/2 + 200;
+    posCol4X = width/2 + 50;
     posPersY = height/2;
     posAurX = width/2 + 100;
     posTimeX = width/2 + 100;
     posFondoX = width/2 + 25;
-
-    // Tamaños iniciales
-    hCol1 = 1000;
-    wCol1 = 200;
-    hCol2 = 750;
-    wCol2 = 175;
-    hAur = 360;
-    wAur = 150;
-    hTime = 520;
-    wTime = 165;
+    
+    //Imagenes
+     fondo1 = loadResizedImage("fondo1.png", width+50);
+     col1 = loadResizedImage("col1.png", 220);
+     col2 = loadResizedImage("col2.png", 200);
+     col3 = loadResizedImage("col3.png",300);
+     col4 = loadResizedImage("col4.png",450);
+     aur1 = loadResizedImage("aur1.png", 300);
+     time1 = loadResizedImage("time1.png", 300);
     
     // Audio
      //audioEsc1 = audioManager.loadFile("esc1.mp3");
       //dial1 = audioManager.loadFile("time2.mp3"); 
       //dial2 = audioManager.loadFile("time1.mp3");
       //audTrans = audioManager.loadFile("brisa.mp3");
-      //estadoEscena1 = E1_ACCION_INICIAL;
+     estadoEscena1 = E1_ACCION_INICIAL;
   }
 
 void dibujar() {
   rectMode(CENTER);
-  background(200);
-
   pushMatrix();
 
   // --- CÁMARA ---
   translate(width/2, height/2);
   scale(camZoom);
   translate(-width/2 + camX, -height/2 + camY);
+  
+  image(fondo1, width/2, height/2);
 
   // Columnas (FONDO)
-  fill(150);
-  rect(posCol2X + width/4, posColY -150, wCol2, hCol2);
-  rect(posCol2X - width/4, posColY -150, wCol2, hCol2);
+  image(col2, posCol2X + width/3, posColY -250);
+  image(col3, posCol3X - width/3, posColY -250);
 
   // Objetos
-  fill(100, 150, 200); // Azul
-  rect(posAurX -300, posPersY +165, wAur, hAur);
+  image(aur1, posAurX -600, posPersY +165);
 
-  fill(200, 100, 100); // Rojo
-  rect(posTimeX +300, posPersY +85, wTime, hTime);
+  image(time1, posTimeX +650, posPersY +85);
 
   // Columnas (FRENTE)
-  fill(100);
-  rect(posCol1X + width/2, posColY, wCol1, hCol1);
-  rect(posCol1X - width/2, posColY, wCol1, hCol1);
-  rect(posCol1X, posColY, wCol1, hCol1);
+  image(col1, posCol1X + width/2 +50, posColY);
+  image(col4, posCol4X, posColY);
 
   popMatrix();
 
@@ -117,7 +100,10 @@ void dibujar() {
 
 
   void actualizar() {
-    t = millis() - tiempoEstado;
+    
+  float currentTime = millis();
+
+  t = millis() - tiempoEstado;
 
     switch (estadoEscena1) {
 
@@ -164,9 +150,9 @@ void dibujar() {
      case E1_ACCION_VUELTA:
 
   // Volver al plano general
-  camX = ease(camX, 0, 0.04);
-  camY = ease(camY, 0, 0.04);
-  camZoom = ease(camZoom, 1.0, 0.04);
+  camX = lerp(camX, 0, 0.04);
+  camY = lerp(camY, 0, 0.04);
+  camZoom = lerp(camZoom, 1.0, 0.04);
 
   // Esperar unos segundos antes de transición
   if (millis() - tiempoEstado > 3000) {
@@ -184,15 +170,13 @@ void dibujar() {
     //audTrans.play();
 
     // Barrido hacia la izquierda
-    camX = ease(camX, -width * 1.2, 0.1);
-
-    // Ligero zoom out para reforzar transición
-    camZoom = ease(camZoom, 0.9, 0.02);
+  camX = lerp(camX, -width * 1.2, 0.1);
+  camZoom = lerp(camZoom, 0.9, 0.02);
 
     // Cuando ya salió de pantalla
     if (camX < -width) {
       // audTrans.stop();
-       estadoGeneral = ESCENA3;
+       estadoGeneral = ESCENA2;
     }
   }
 
@@ -215,10 +199,12 @@ void dibujar() {
   void moverElementos() {
   float objetivo = width/2;
 
-  posCol2X = ease(posCol2X, objetivo, 0.01);
-  posAurX  = ease(posAurX,  objetivo, 0.02);
-  posTimeX = ease(posTimeX, objetivo, 0.02);
-  posCol1X = ease(posCol1X, objetivo, 0.04);
+  posCol2X = lerp(posCol2X, objetivo, 0.01);
+  posAurX  = lerp(posAurX,  objetivo, 0.02);
+  posTimeX = lerp(posTimeX, objetivo, 0.02);
+  posCol1X = lerp(posCol1X, objetivo - 100, 0.04);
+  posCol3X = lerp(posCol3X, objetivo, 0.04);
+  posCol4X = lerp(posCol4X, objetivo, 0.04);
  }
  
  void camaraDialogo1() {
@@ -230,9 +216,9 @@ void dibujar() {
   // Zoom para encuadrar entre primeras columnas
   camZoomObj = 1.4;
 
-  camX = ease(camX, objetivoX, 0.05);
-  camY = ease(camY, objetivoY, 0.05);
-  camZoom = ease(camZoom, camZoomObj, 0.05);
+  camX = lerp(camX, objetivoX, 0.05);
+  camY = lerp(camY, objetivoY, 0.05);
+  camZoom = lerp(camZoom, camZoomObj, 0.05);
  }
  
  void camaraDialogo2() {
@@ -243,14 +229,10 @@ void dibujar() {
 
   camZoomObj = 1.4;
 
-  camX = ease(camX, objetivoX, 0.05);
-  camY = ease(camY, objetivoY, 0.05);
-  camZoom = ease(camZoom, camZoomObj, 0.05);
+  camX = lerp(camX, objetivoX, 0.05);
+  camY = lerp(camY, objetivoY, 0.05);
+  camZoom = lerp(camZoom, camZoomObj, 0.05);
 }
 
 
 }
-
-float ease(float current, float target, float speed){ 
-  return current + (target - current) * speed; 
-  }
