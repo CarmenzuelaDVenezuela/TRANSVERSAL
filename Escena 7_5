@@ -1,0 +1,65 @@
+class Escena7_5 {
+
+  PImage falda, mano1, mano2, reloj7, fondo7, cuerpo;
+
+  int faldaX, faldaY;
+  int relojX, relojY;
+  int cuerpoX, cuerpoY;
+  int manoX, manoY;
+
+  boolean manoActiva = false;
+  int tiempoMano = 0;
+  int duracionMano = 3000;
+
+  Escena7_5() {
+
+    faldaX = width/2 - 600;
+    faldaY = height/2 + 20;
+
+    relojX = width/2 - 200;
+    relojY = height/2 - 300;
+
+    manoX = width/2 + 500;
+    manoY = height/2 + 20;
+
+    cuerpoX = width/2 + 650;
+    cuerpoY = height/2 + 150;
+
+    fondo7 = loadResizedImage("fondoarbol.png", width+100);
+    cuerpo = loadResizedImage("aur7.png", 650);
+    reloj7 = loadResizedImage("r7.png", 250);
+    mano1  = loadResizedImage("mano7_1.png", 900);
+    mano2  = loadResizedImage("mano7_2.png", 850);
+    falda  = loadResizedImage("falda.png", 1100);
+  }
+
+  void dibujar() {
+    imageMode(CENTER);
+    image(fondo7, width/2, height/2);
+    image(falda, faldaX, faldaY);
+    image(cuerpo, cuerpoX, cuerpoY);
+    image(reloj7, relojX, relojY);
+
+    if (manoActiva && millis() - tiempoMano < duracionMano) {
+      image(mano2, manoX+25, manoY-100);
+    } else {
+      manoActiva = false;
+      image(mano1, manoX, manoY);
+    }
+  }
+
+  void ratonPulsado() {
+
+    if (mouseX > manoX - mano1.width/2 && mouseX < manoX + mano1.width/2 &&
+        mouseY > manoY - mano1.height/2 && mouseY < manoY + mano1.height/2) {
+
+      manoActiva = true;
+      tiempoMano = millis();
+    }
+
+    if (mouseX > relojX - reloj7.width/2 && mouseX < relojX + reloj7.width/2 &&
+        mouseY > relojY - reloj7.height/2 && mouseY < relojY + reloj7.height/2) {
+      estadoGeneral=ESCENA8; // o ESCENA8
+    }
+  }
+}
