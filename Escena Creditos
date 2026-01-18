@@ -1,0 +1,61 @@
+class EscenaCreditos {
+
+  PImage creditos;
+
+  String[] nombres = {
+    "Maria Paula Cabal Hernandez", 
+    "Carmen Gonzalez Quijada", 
+    "Mencia Selles Sola", 
+    "Violeta Ruck Muñoz"
+  };
+  float[] yPos;      // posición vertical actual de cada nombre
+  float[] yTarget;   // posición vertical final de cada nombre
+  float velocidad;   // velocidad de interpolación
+
+  float tiempoInicio;  // control del tiempo total
+  boolean terminado = false;
+
+  // ===== CONSTRUCTOR =====
+  EscenaCreditos() {
+    creditos = loadResizedImage("creditos.png", width + 50);
+
+    yPos = new float[nombres.length];
+    yTarget = new float[nombres.length];
+
+    float tercioSuperior = height / 3;
+
+    for (int i = 0; i < nombres.length; i++) {
+      yPos[i] = -50 - i * 100;           // comienzan fuera de la pantalla
+      yTarget[i] = tercioSuperior + i * 80; // posición final en tercio superior
+    }
+
+    velocidad = 0.02; // control de suavidad del movimiento
+    tiempoInicio = millis();
+  }
+
+  void dibujar() {
+    background(0);
+
+    // --- dibujar imagen de fondo ---
+    imageMode(CENTER);
+    image(creditos, width/2, height/2);
+
+    // --- dibujar nombres ---
+    textAlign(CENTER, CENTER);
+    textSize(50);
+    fill(255);
+
+    // Dos columnas: nombres pares izquierda, impares derecha
+    for (int i = 0; i < nombres.length; i++) {
+      float x = (i % 2 == 0) ? width/2 - 650 : width/2 + 600;
+      yPos[i] = lerp(yPos[i], yTarget[i], velocidad); // suaviza el movimiento
+      text(nombres[i], x, yPos[i]);
+    }
+
+    // --- cerrar programa después de 40 segundos ---
+    if (!terminado && millis() - tiempoInicio >= 40000) {
+      terminado = true;
+      exit();
+    }
+  }
+}
