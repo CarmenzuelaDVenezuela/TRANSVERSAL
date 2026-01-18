@@ -31,7 +31,7 @@ class Escena6 {
   AudioPlayer audio6, click, exito;
   
   //Imagenes
-  //PImage eng1, eng2, eng3, tapa, reloj6, fondo6;
+  PImage eng1, eng2, eng3, tapa, caja, reloj6, fondo6;
   
   // ================= TRANSICIÓN =================
   boolean transicion = false;
@@ -54,13 +54,13 @@ class Escena6 {
 
     // ---- BOTONES (más centrados y separados dentro del cuadrado rojo) ----
     botonX[0] = cajaX;
-    botonY[0] = cajaY - 60;
+    botonY[0] = cajaY - 100;
 
-    botonX[1] = cajaX - 100;
-    botonY[1] = cajaY + 50;
+    botonX[1] = cajaX - 180;
+    botonY[1] = cajaY + 100;
 
-    botonX[2] = cajaX + 100;
-    botonY[2] = cajaY + 50;
+    botonX[2] = cajaX + 80;
+    botonY[2] = cajaY + 130;
 
     // ---- TAPA (zona inicial aleatoria) ----
     tapaX = random(tapaR / 2, width - tapaR / 2);
@@ -70,37 +70,27 @@ class Escena6 {
      //click = audioManager.loadFile("click.mp3");
     // exito = audioManager.loadFile("exito.mp3");
     
-      // tapa= loadImage("tapa.png");
-      // reloj6= loadImage("r6.png");
-      // eng1= loadImage("eng1.png");
-      // eng2= loadImage("eng2.png");
-      // eng3= loadImage("eng3.png");
-      // fondo= loadImage("fondo6.png");
+       tapa= loadResizedImage("tapa.png",800);
+       caja= loadResizedImage("caja.png",800);
+       reloj6= loadResizedImage("r6.png",900);
+       eng1= loadResizedImage("eng1.png",300);
+       eng2= loadResizedImage("eng2.png",300);
+       eng3= loadResizedImage("eng3.png",300);
+       fondo6= loadResizedImage("fondo6.png",width+100);
 
   }
 
   void dibujar() {
-    background(220);
     //audio6.loop();
+    imageMode(CENTER);
+    
+    image(fondo6, width/2, height/2);
 
     // ---- CUADRADO ROJO CENTRAL ----
-    fill(200, 50, 50);
-    rectMode(CENTER);
-    rect(cajaX, cajaY, cajaSize, cajaSize);
+    image(caja, width/2-50, height/2+20);
+    image(tapa, width/2-50, height/2+20);
 
-    // ===== ENGRANAJES =====
-    for (int i = 0; i < 3; i++) {
-      pushMatrix();
-      translate(circX[i], circY[i]);
-      rotate(circAngle[i]);
-      fill(90, 140, 240);
-      ellipse(0, 0, circR, circR);
-      stroke(0);
-      line(0, 0, circRadio, 0);
-      noStroke();
-      if (!circColocados[i]) circAngle[i] += 0.04;
-      popMatrix();
-    }
+
 
     // ===== BOTONES =====
     fill(180, 180, 180, 120);
@@ -109,21 +99,43 @@ class Escena6 {
       rect(botonX[i], botonY[i], botonR, botonR);
     }
 
-    // ===== TAPA =====
-      pushMatrix();
-    translate(tapaX, tapaY);
-    rotate(tapaRot);
-    scale(tapaEscala);
-    fill(200, 120, 40, 160);
-    ellipse(0, 0, tapaR, tapaR);
-      popMatrix();
+    // ===== ENGRANAJES =====
+    for (int i = 0; i < 3; i++) {
+pushMatrix();
+translate(circX[i], circY[i]);
+rotate(circAngle[i]);
+imageMode(CENTER);
+
+// Selección de imagen por engranaje
+if (i == 0) {
+  image(eng1, 0, 0);
+} else if (i == 1) {
+  image(eng2, 0, 0);
+} else if (i == 2) {
+  image(eng3, 0, 0);
+}
+
+if (!circColocados[i]) circAngle[i] += 0.04;
+popMatrix();
+
+    }
+
+// ===== TAPA (imagen reloj6) =====
+pushMatrix();
+translate(tapaX, tapaY);
+rotate(tapaRot);
+scale(tapaEscala);
+imageMode(CENTER);
+image(reloj6, 0, 0);
+popMatrix();
+
       
       if (transicion) {
   tapaEscala += 0.03;   // velocidad de crecimiento
   tapaRot += 0.08;     // velocidad de giro
 
   // Cuando cubra toda la pantalla
-  if (tapaR * tapaEscala > max(width, height) * 1.5) {
+  if (tapaR * tapaEscala > max(1000,1000)) {
     //audio6.stop()
    estadoGeneral=ESCENA7;
   }
@@ -212,7 +224,7 @@ class Escena6 {
 
   if (todoOk) {
     transicion = true;
-    // exito.play(); // si quieres sonido
+    // exito.play(); 
   }
 }
   }
