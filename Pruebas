@@ -5,44 +5,50 @@ import processing.javafx.*;
 int estadoGeneral;
 EscenaDeCarga escenaDeCarga;
 Escena1 escena1;
-//Escena2 escena2;
+Escena2 escena2;
+Escena2_5 escena2_5;
 Escena3 escena3;
 Escena4 escena4;
 Escena5 escena5;
 Escena6 escena6;
 Escena7 escena7;
+Escena7_5 escena7_5;
 Escena8 escena8;
 Escena9 escena9;
-
+Escena10 escena10;
 Escena11 escena11;
+Escena12 escena12;
 Escena13 escena13;
+EscenaCreditos escenaCreditos;
 
 // Minim audioManager;
 // AudioPlayer sonidoGeneral;
 // PImage flechaDerecha;
 
 void setup() {
-  size(1920, 1080, FX2D);//Full HD
+  size(1366, 768, FX2D);//Full HD
   hint(ENABLE_KEY_REPEAT);
   fullScreen();
  // audioManager = new Minim(this);
   escenaDeCarga = new EscenaDeCarga();
   escena1 = new Escena1();
- // escena2 = new Escena2();
+  escena2 = new Escena2();
+  escena2_5 = new Escena2_5();
   escena3 = new Escena3();
   escena4 = new Escena4();
   escena5 = new Escena5();
   escena6 = new Escena6();
   escena7 = new Escena7();
+  escena7_5 = new Escena7_5();
   escena8 = new Escena8();
   escena9 = new Escena9();
-
+  escena10 = new Escena10();
   escena11 = new Escena11();
-  escena11.inicializar(); 
-  estadoGeneral = ESCENA8;
+  escena12 = new Escena12();
+  escena13 = new Escena13();
+  escenaCreditos = new EscenaCreditos();
+  estadoGeneral = ESCENA7;
  // flechaDerecha = loadImage("flechaDerecha.png");
-
-escena13 = new Escena13();
 }
 
 void draw() {
@@ -53,9 +59,12 @@ void draw() {
   case ESCENA1:
     escena1.dibujar();
     break;
- /* case ESCENA2:
+  case ESCENA2:
     escena2.dibujar();
-    break;*/
+    break;
+  case ESCENA2_5:
+    escena2_5.dibujar();
+    break;
   case ESCENA3:
     escena3.dibujar();
     break;
@@ -71,30 +80,30 @@ void draw() {
   case ESCENA7:
     escena7.dibujar();
     break;
+  case ESCENA7_5:
+    escena7_5.dibujar();
+    break;
   case ESCENA8:
     escena8.dibujar();
     break;
-   case ESCENA9:
-    escena9.dibujar(); 
+  case ESCENA9:
+    escena9.dibujar();
     break;
-
-   case ESCENA11:
-      escena11.dibujar();
-      break;
-
-case ESCENA13:
+  case ESCENA10:
+    escena10.dibujar();
+    break;
+  case ESCENA11:
+    escena11.dibujar();
+    break;
+  case ESCENA12:
+    escena12.dibujar();
+    break;
+  case ESCENA13:
     escena13.dibujar();
     break;
-  
-
-
-case ESCENA12:
-      background(50, 100, 150);
-      fill(255);
-      textSize(50);
-      textAlign(CENTER, CENTER);
-      text("Bienvenido a ESCENA12", width/2, height/2);
-      break; //solo para que se vea, luego se cambiará 
+  case ESCENACREDITOS:
+    escenaCreditos.dibujar();
+    break;
   }
 }
 
@@ -106,6 +115,9 @@ void mousePressed() {
   case ESCENA1:
     escena1.botonPulsado();
     break;
+  case ESCENA2_5:
+    escena2_5.ratonPulsado();
+    break;
   case ESCENA3:
     escena3.ratonPulsado();
     break;
@@ -115,48 +127,53 @@ void mousePressed() {
   case ESCENA6:
     escena6.ratonPulsado();
     break;  
-  case ESCENA7:
-    escena7.ratonPulsado();
+  case ESCENA7_5:
+    escena7_5.ratonPulsado();
     break;
   case ESCENA9:
-      escena9.ratonPulsado();
-      break;
-
- case ESCENA11:
-      escena11.ratonPulsado();
-      break;
+    escena9.ratonPulsado();
+    break;
+  case ESCENA10:
+    escena10.ratonPulsado();
+    break;
+  case ESCENA11:
+    escena11.ratonPulsado();
+    break;
   }
 }
 
-/*void mouseMoved() {
+void mouseMoved() {
   switch (estadoGeneral) {
-  case ESCENA2:
-    escena2.rotonDetectado();
+  case ESCENA2_5:
+    escena2_5.ratonDetectado();
     break;
   }
-}*/
+}
 
 void keyPressed() {
   switch (estadoGeneral) {
- // case ESCENA2:
-  //  escena2.teclaPulsada();
-   // break;
+  case ESCENA2:
+    escena2.teclaPulsada();
+    break;
   case ESCENA7:
     escena7.teclaPulsada();
     break;
   case ESCENA8:
     escena8.teclaPulsada();
     break;
+  case ESCENA12:
+    escena12.teclaPulsada();
+    break;
   }
 }
 
 void keyReleased() {
   switch (estadoGeneral) {
-  /*case ESCENA2:
-    escena2.teclaLevantada();
-    break*/
   case ESCENA8:
     escena8.teclaLevantada();
+    break;
+  case ESCENA12:
+    escena12.teclaLevantada();
     break;
   }
 }
@@ -174,7 +191,6 @@ void mouseDragged() {
     escena6.ratonArrastrado();
   }
 }
-
 
 PImage loadResizedImage(String nombreFichero, int ancho) {
   PImage miImagen = loadImage(nombreFichero);
