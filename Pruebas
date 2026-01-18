@@ -15,6 +15,7 @@ Escena8 escena8;
 Escena9 escena9;
 
 Escena11 escena11;
+Escena13 escena13;
 
 // Minim audioManager;
 // AudioPlayer sonidoGeneral;
@@ -40,6 +41,8 @@ void setup() {
   escena11.inicializar(); 
   estadoGeneral = ESCENA8;
  // flechaDerecha = loadImage("flechaDerecha.png");
+
+escena13 = new Escena13();
 }
 
 void draw() {
@@ -78,6 +81,12 @@ void draw() {
    case ESCENA11:
       escena11.dibujar();
       break;
+
+case ESCENA13:
+    escena13.dibujar();
+    break;
+  
+
 
 case ESCENA12:
       background(50, 100, 150);
