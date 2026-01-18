@@ -4,37 +4,27 @@ float ease(float current, float target, float speed) {
 
 class Escena13 {
 
-  // -------------------------
-  // ESTADOS
-  // -------------------------
-  final int E13_PREPARACION = 0;
-  final int E13_CAIDA_PRINCIPAL = 1;
-  final int E13_ENTRADA_TIEMPO = 2;
-  final int E13_ZOOM_AZUL = 3;
-  final int E13_ZOOM_ROJO = 4;
-  final int E13_PLANO_GENERAL = 5;
-  final int E13_FINAL = 6;
-
   int estado;
 
+  PImage r14, time14, fondofinal;
+
   // -------------------------
-  // PERSONAJE PRINCIPAL (ROJO)
+  // PERSONAJE PRINCIPAL (ROJO) ANIMADO
   // -------------------------
   float pX, pY;
   float pW = 140;
   float pH = 340;
-  float rot = 0;
 
-  int spriteIndex = 0;
-  int spriteTimer = 0;
-  int totalSprites = 4;
+  Animation rojoAnim;      // animación del personaje
+  boolean animTerminada = false; // indica si se llegó al último frame
+
+  float pXInicial;         // posición inicial X del sprite
+  float pXObjetivo;        // posición final X del sprite
 
   // -------------------------
   // PERSONAJE TIEMPO (AZUL)
   // -------------------------
   float tX, tY;
-  float tW = 150;
-  float tH = 520;
 
   // -------------------------
   // SUELO Y CÁMARA
@@ -49,21 +39,42 @@ class Escena13 {
   // CONTROL ZOOM Y TIEMPO
   // -------------------------
   boolean zoomActivo = false;
-  float tiempoEstado = 0; // para controlar retrasos entre zoomes
-  float tiempoEspera = 0; // cuenta 5 seg entre zoomes
+  float tiempoEstado = 0;
+
+  // -------------------------
+  // TRANSICIÓN / INICIO ESCENA
+  // -------------------------
+  float rX, rY;
+  boolean escenaActiva = false;
 
   Escena13() {
+
+    // La escena NO empieza aún
     estado = E13_PREPARACION;
 
     sueloY = height/2 + 280;
 
-    // Rojo entra desde la izquierda
-    pX = -300;
-    pY = sueloY - pH/2;
+    // Posición inicial y final del sprite rojo
+    pXInicial = -110;              // empieza fuera de la pantalla a la izquierda
+    pXObjetivo = width/2 - 650;    // posición final
+    pX = pXInicial;
+    pY = sueloY - 150;
 
-    // Azul espera fuera a la derecha
     tX = width + 300;
-    tY = sueloY - tH/2;
+    tY = sueloY - 520/2;
+
+    r14 = loadResizedImage("r14.png", width);
+    time14 = loadResizedImage("time14.png", 400);
+    fondofinal = loadResizedImage("fondofinal.png", width);
+
+    // Reloj completamente fuera por la derecha
+    rX = width + r14.width / 2;
+    rY = height / 2;
+
+    // -------------------------
+    // CARGAR ANIMACIÓN DEL PERSONAJE ROJO
+    // -------------------------
+    rojoAnim = new Animation("aurcae", 6, 8); // archivos aurcae0000.png ... 0005
   }
 
   // -------------------------
@@ -71,35 +82,38 @@ class Escena13 {
   // -------------------------
   void dibujar() {
     rectMode(CENTER);
-    background(190);
 
-    // Si estamos en pantalla negra, dibujamos solo negro
     if (estado == E13_FINAL) {
       background(0);
-    } else {
-      pushMatrix();
-
-      // --- CÁMARA ---
-      translate(width/2, height/2);
-      scale(camZoom);
-      translate(-width/2 + camX, -height/2 + camY);
-
-      // -------- ROJO --------
-      pushMatrix();
-      translate(pX, pY);
-      rotate(rot);
-      fill(200, 90, 90);
-      rect(0, 0, pW, pH - spriteIndex * 30);
-      popMatrix();
-
-      // -------- AZUL --------
-      if (estado >= E13_ENTRADA_TIEMPO) {
-        fill(100, 150, 200);
-        rect(tX, tY, tW, tH);
-      }
-
-      popMatrix();
+      actualizar();
+      return;
     }
+
+    pushMatrix();
+
+    // --- CÁMARA (AFECTA A TODO) ---
+    translate(width/2, height/2);
+    scale(camZoom);
+    translate(-width/2 + camX, -height/2 + camY);
+
+    // Fondo
+    imageMode(CORNER);
+    image(fondofinal, 0, 0);
+
+    // -------- ROJO ANIMADO --------
+    rojoAnim.display(pX - pW/2, pY - pH/2, animTerminada);
+
+    // -------- AZUL --------
+    if (estado >= E13_ENTRADA_TIEMPO) {
+      imageMode(CENTER);
+      image(time14, tX, tY);
+    }
+
+    // -------- RELOJ (MISMA CÁMARA) --------
+    imageMode(CENTER);
+    image(r14, rX, rY);
+
+    popMatrix();
 
     actualizar();
   }
@@ -108,6 +122,24 @@ class Escena13 {
   // ACTUALIZAR
   // -------------------------
   void actualizar() {
+
+    // -------- TRANSICIÓN DEL RELOJ --------
+    if (!escenaActiva) {
+
+      float objetivoX = -width / 3; // deja media imagen visible
+      rX = ease(rX, objetivoX, 0.05);
+
+      if (abs(rX - objetivoX) < 2) {
+        rX = objetivoX;
+        escenaActiva = true;      // AHORA empieza la escena
+        tiempoEstado = millis(); // reset de tiempo narrativo
+      }
+
+      camZoom = ease(camZoom, camZoomObj, 0.05);
+      return;
+    }
+
+    // -------- LÓGICA NORMAL DE ESCENA --------
     switch (estado) {
 
       case E13_PREPARACION:
@@ -115,41 +147,35 @@ class Escena13 {
         break;
 
       case E13_CAIDA_PRINCIPAL:
-        // Movimiento lateral y caída/tropiezo
-        pX = ease(pX, width/2 - 300, 0.05);
-        pY = ease(pY, sueloY - pW/2, 0.08);
-        rot = ease(rot, HALF_PI, 0.08);
+        // Solo reproducir animación, posición se mueve linealmente en X
+        if (!animTerminada) {
+          rojoAnim.update();
 
-        spriteTimer++;
-        if (spriteTimer % 6 == 0) {
-          spriteIndex = (spriteIndex + 1) % totalSprites;
-        }
+          // Movimiento lineal X desde pXInicial a pXObjetivo según progreso de frames
+          float t = (float)rojoAnim.currentFrame / (rojoAnim.imageCount - 1); // 0..1
+          pX = lerp(pXInicial, pXObjetivo, t);
 
-        if (abs(rot - HALF_PI) < 0.02) {
-          rot = HALF_PI;
+        } else {
+          pX = pXObjetivo; // asegurar posición final
           estado = E13_ENTRADA_TIEMPO;
-          tiempoEstado = millis(); // empezar a contar 1s para zoom azul
+          tiempoEstado = millis();
         }
         break;
 
       case E13_ENTRADA_TIEMPO:
-        // Movimiento del azul desde la derecha
-        tX = ease(tX, width/2 + 300, 0.05);
+        tX = ease(tX, width/2 + 300, 0.005);
 
-        // Cuando azul llega a posición final, activar zoom
-        if (!zoomActivo && abs(tX - (width/2 + 300)) < 2) {
+        if (!zoomActivo && abs(tX - (width/2 + 300)) < 3) {
           zoomActivo = true;
-          tiempoEstado = millis(); // inicio del retraso 1 seg
+          tiempoEstado = millis();
         }
 
-        // Zoom centrado en azul tras 1 segundo
-        if (zoomActivo && millis() - tiempoEstado >= 1000) {
+        if (zoomActivo && millis() - tiempoEstado >= 5000) {
           camZoomObj = 1.4;
           camX = ease(camX, width/2 - tX, 0.05);
           camY = ease(camY, height/2 - tY, 0.05);
 
-          // Después de 5 segundos pasar al zoom rojo
-          if (millis() - tiempoEstado >= 6000) {
+          if (millis() - tiempoEstado >= 10000) {
             estado = E13_ZOOM_ROJO;
             tiempoEstado = millis();
           }
@@ -157,12 +183,10 @@ class Escena13 {
         break;
 
       case E13_ZOOM_ROJO:
-        // Zoom centrado en rojo
         camZoomObj = 1.4;
         camX = ease(camX, width/2 - pX, 0.05);
         camY = ease(camY, height/2 - pY, 0.05);
 
-        // Después de 5 segundos pasar al plano general
         if (millis() - tiempoEstado >= 5000) {
           estado = E13_PLANO_GENERAL;
           tiempoEstado = millis();
@@ -170,12 +194,10 @@ class Escena13 {
         break;
 
       case E13_PLANO_GENERAL:
-        // Zoom/plano general
         camZoomObj = 1.0;
         camX = ease(camX, 0, 0.05);
         camY = ease(camY, 0, 0.05);
 
-        // Después de 5 segundos pasar a pantalla negra
         if (millis() - tiempoEstado >= 5000) {
           estado = E13_FINAL;
           tiempoEstado = millis();
@@ -183,17 +205,55 @@ class Escena13 {
         break;
 
       case E13_FINAL:
-        // Pantalla negra visible
         background(0);
-
-        // Tras 0.5 seg cambiar a créditos
         if (millis() - tiempoEstado >= 500) {
-          estadoGeneral = ESCENA_CREDITOS;
+          estadoGeneral=ESCENACREDITOS;
         }
         break;
     }
 
-    // Aplicar suavizado de zoom cada frame
     camZoom = ease(camZoom, camZoomObj, 0.05);
   }
+
+  // ================== CLASE ANIMACIÓN ==================
+  class Animation {
+    PImage[] images;
+    int imageCount;
+    int currentFrame = 0;
+    int frameDelay;
+    int lastUpdate;
+
+    Animation(String prefix, int count, int fps) {
+      imageCount = count;
+      images = new PImage[imageCount];
+      for (int i = 0; i < count; i++) {
+        String filename = prefix + nf(i, 4) + ".png"; // aurcae0000.png ... 0005
+        images[i] = loadResizedImage(filename, 500);
+      }
+      frameDelay = 1000 / fps;
+      lastUpdate = millis();
+    }
+
+    void update() {
+      if (!animTerminada) { // solo avanza si la animación no terminó
+        int now = millis();
+        if (now - lastUpdate >= frameDelay) {
+          currentFrame++;
+          if (currentFrame >= imageCount - 1) {
+            currentFrame = imageCount - 1; // detener en el último frame
+            animTerminada = true;         // marca como terminada
+          }
+          lastUpdate = now;
+        }
+      }
+    }
+
+    void display(float x, float y, boolean animDetenida) { 
+    imageMode(CORNER); 
+    // Calculamos el desplazamiento según el índice del frame 
+      float dx = currentFrame * 20; // 3 píxeles a la derecha por frame 
+      float dy = currentFrame * 30; // 3 píxeles hacia abajo por frame 
+    image(images[currentFrame], x + dx, y + dy); 
+  } 
+ } 
 }
