@@ -10,8 +10,10 @@ class Escena13 {
   final int E13_PREPARACION = 0;
   final int E13_CAIDA_PRINCIPAL = 1;
   final int E13_ENTRADA_TIEMPO = 2;
-  final int E13_ENFRENTADOS = 3;
-  final int E13_FINAL = 4; // pantalla negra antes de créditos
+  final int E13_ZOOM_AZUL = 3;
+  final int E13_ZOOM_ROJO = 4;
+  final int E13_PLANO_GENERAL = 5;
+  final int E13_FINAL = 6;
 
   int estado;
 
@@ -41,14 +43,14 @@ class Escena13 {
   float camX = 0;
   float camY = 0;
   float camZoom = 1.0;
-  float camZoomObj = 1.4; // zoom sobre azul
+  float camZoomObj = 1.0;
 
   // -------------------------
   // CONTROL ZOOM Y TIEMPO
   // -------------------------
   boolean zoomActivo = false;
-  float tiempoZoom = 0;
-  float tiempoEsperaFinal = 0;
+  float tiempoEstado = 0; // para controlar retrasos entre zoomes
+  float tiempoEspera = 0; // cuenta 5 seg entre zoomes
 
   Escena13() {
     estado = E13_PREPARACION;
@@ -69,13 +71,12 @@ class Escena13 {
   // -------------------------
   void dibujar() {
     rectMode(CENTER);
+    background(190);
 
     // Si estamos en pantalla negra, dibujamos solo negro
     if (estado == E13_FINAL) {
       background(0);
     } else {
-      background(190);
-
       pushMatrix();
 
       // --- CÁMARA ---
@@ -127,7 +128,7 @@ class Escena13 {
         if (abs(rot - HALF_PI) < 0.02) {
           rot = HALF_PI;
           estado = E13_ENTRADA_TIEMPO;
-          tiempoZoom = millis(); // empezar a contar 1s para zoom
+          tiempoEstado = millis(); // empezar a contar 1s para zoom azul
         }
         break;
 
@@ -135,50 +136,64 @@ class Escena13 {
         // Movimiento del azul desde la derecha
         tX = ease(tX, width/2 + 300, 0.05);
 
-        // Activar zoom + centrado tras 1 segundo
+        // Cuando azul llega a posición final, activar zoom
         if (!zoomActivo && abs(tX - (width/2 + 300)) < 2) {
           zoomActivo = true;
-          tiempoZoom = millis(); // inicio del retraso 1 seg
+          tiempoEstado = millis(); // inicio del retraso 1 seg
         }
 
-        if (zoomActivo && millis() - tiempoZoom >= 1000) {
-          float objetivoX = width/2 - tX;
-          float objetivoY = height/2 - tY;
-          camX = ease(camX, objetivoX, 0.05);
-          camY = ease(camY, objetivoY, 0.05);
-          camZoom = ease(camZoom, camZoomObj, 0.05);
-        }
+        // Zoom centrado en azul tras 1 segundo
+        if (zoomActivo && millis() - tiempoEstado >= 1000) {
+          camZoomObj = 1.4;
+          camX = ease(camX, width/2 - tX, 0.05);
+          camY = ease(camY, height/2 - tY, 0.05);
 
-        // Pasar a enfrentados
-        if (abs(tX - (width/2 + 300)) < 2) {
-          estado = E13_ENFRENTADOS;
-          tiempoEsperaFinal = millis(); // empieza cuenta atrás 5s antes de negro
+          // Después de 5 segundos pasar al zoom rojo
+          if (millis() - tiempoEstado >= 6000) {
+            estado = E13_ZOOM_ROJO;
+            tiempoEstado = millis();
+          }
         }
         break;
 
-      case E13_ENFRENTADOS:
-        // Mantener zoom centrado y acercado en azul
-        if (zoomActivo) {
-          float objetivoX = width/2 - tX;
-          float objetivoY = height/2 - tY;
-          camX = ease(camX, objetivoX, 0.05);
-          camY = ease(camY, objetivoY, 0.05);
-          camZoom = ease(camZoom, camZoomObj, 0.05);
-        }
+      case E13_ZOOM_ROJO:
+        // Zoom centrado en rojo
+        camZoomObj = 1.4;
+        camX = ease(camX, width/2 - pX, 0.05);
+        camY = ease(camY, height/2 - pY, 0.05);
 
-        // Esperar 5 segundos y pasar a pantalla negra
-        if (millis() - tiempoEsperaFinal >= 5000) {
+        // Después de 5 segundos pasar al plano general
+        if (millis() - tiempoEstado >= 5000) {
+          estado = E13_PLANO_GENERAL;
+          tiempoEstado = millis();
+        }
+        break;
+
+      case E13_PLANO_GENERAL:
+        // Zoom/plano general
+        camZoomObj = 1.0;
+        camX = ease(camX, 0, 0.05);
+        camY = ease(camY, 0, 0.05);
+
+        // Después de 5 segundos pasar a pantalla negra
+        if (millis() - tiempoEstado >= 5000) {
           estado = E13_FINAL;
-          tiempoZoom = millis(); // iniciar contador para pantalla negra
+          tiempoEstado = millis();
         }
         break;
 
       case E13_FINAL:
-        // pantalla negra visible un breve momento antes de cambiar a créditos
-        if (millis() - tiempoZoom >= 500) { // 0.5 seg negro
+        // Pantalla negra visible
+        background(0);
+
+        // Tras 0.5 seg cambiar a créditos
+        if (millis() - tiempoEstado >= 500) {
           estadoGeneral = ESCENA_CREDITOS;
         }
         break;
     }
+
+    // Aplicar suavizado de zoom cada frame
+    camZoom = ease(camZoom, camZoomObj, 0.05);
   }
 }
