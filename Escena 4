@@ -3,14 +3,14 @@ controlar la transicion de la arena segun x frame*/
 
 class Escena4 {
   
-  //PImage fondo4;
+  PImage fondo4, aur;
   
     //ANIMACIÓN
   final int ANIM_FPS = 8;
   final int FRAME_INTERVAL = 1000 / ANIM_FPS;
   int numFrames = 8;
   int currentFrame = 0;
-  PImage[] images = new PImage[numFrames];
+  PImage[] images = new PImage[numFrames]; //394+297
   boolean animPlaying = false;
   boolean animFinished = false;
   int lastFrameTime = 0;
@@ -53,8 +53,12 @@ class Escena4 {
     colWidth = width / float(cols);
          
       for (int i = 0; i < numFrames; i++) {
-    String imageName = "PT_anim" + nf(i, 4) + ".gif";
-    images[i] = loadImage(imageName);
+    String imageName = "arena" + nf(i, 4) + ".png";
+    images[i] = loadResizedImage(imageName, 1450);
+    
+     fondo4= loadResizedImage("fondoG.png", width);
+     aur= loadResizedImage("aur4.png", 1350);
+
   }
   
   }
@@ -62,7 +66,8 @@ class Escena4 {
   // ------------------------------------------------
 void dibujar() {
   //audio4.loop();
-  background(200);
+  image(fondo4, width/2, height/2);
+  image (aur, width/2-500, height/2+100);
 
   // 1. Animación (FONDO)
   updateAnimation();
@@ -131,7 +136,7 @@ void drawAnimation() {
   imageMode(CENTER);
   image(
     images[currentFrame],
-    width / 2,
+    width / 2-237,
     height / 2
   );
 }
