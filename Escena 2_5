@@ -1,0 +1,154 @@
+class Escena2_5 {
+
+  // POSICIONES
+  float aur2X, mesaX, relojX, persEgX;
+  float aur2Y, mesaY, relojY, persEgY;
+
+  float aur2X_T, mesaX_T, relojX_T, persEgX_T;
+
+  // IMÁGENES
+  PImage aur2, reloj2, fondo2, persEg, mesa;
+
+  // FLASH
+  float flashAlpha = 255;
+  boolean flashActivo = true;
+
+  // ZOOM
+  float zoom = 1.0;
+  float zoomTarget = 1.0;
+
+  boolean relojHover = false;
+  boolean relojClick = false;
+  boolean cambiarEscena = false;
+
+  float relojScale = 1.0;
+  float relojScaleTarget = 1.0;
+  
+  //Audio
+  
+  AudioPlayer egipto, tadaa;
+
+  // ===============================
+  // CONSTRUCTOR
+  // ===============================
+  Escena2_5() {
+
+    fondo2 = loadResizedImage("fondoazul.png", width);
+    aur2   = loadResizedImage("aur2.png", 600);
+    reloj2 = loadResizedImage("r2.png", 400);
+    mesa   = loadResizedImage("mesa2.png", 900);
+    persEg = loadResizedImage("persEg.png", 1000);
+
+    aur2X_T = width/2 - 650;
+    mesaX_T = width/2 + 190;
+    relojX_T = width/2 + 250;
+    persEgX_T = width/2 + 620;
+
+    aur2Y = height/2 + 50;
+    mesaY = height/2 + 400;
+    relojY = height/2 + 300;
+    persEgY = height/2;
+
+    aur2X = aur2X_T - 150;
+    mesaX = mesaX_T - 150;
+    relojX = relojX_T - 150;
+    persEgX = persEgX_T - 150;
+  }
+
+  // ===============================
+  // DIBUJO
+  // ===============================
+  void dibujar() {
+     
+   //egipto.loop();
+    ratonDetectado();
+
+    imageMode(CENTER);
+    image(fondo2, width/2, height/2);
+
+    aur2X = lerp(aur2X, aur2X_T, 0.01);
+    mesaX = lerp(mesaX, mesaX_T, 0.025);
+    relojX = lerp(relojX, relojX_T, 0.02);
+    persEgX = lerp(persEgX, persEgX_T, 0.04);
+
+    zoom = lerp(zoom, zoomTarget, 0.05);
+    relojScale = lerp(relojScale, relojScaleTarget, 0.1);
+
+    if (abs(zoom - zoomTarget) < 0.01) zoom = zoomTarget;
+
+    pushMatrix();
+    translate(relojX, relojY);
+    scale(zoom);
+    translate(-relojX, -relojY);
+
+    image(persEg, persEgX, persEgY);
+    image(mesa, mesaX, mesaY);
+
+    pushStyle();
+    if (relojHover) tint(200, 200, 0);
+    else noTint();
+
+    pushMatrix();
+    translate(relojX, relojY);
+    scale(relojScale);
+    image(reloj2, 0, 0);
+    popMatrix();
+    popStyle();
+
+    image(aur2, aur2X, aur2Y);
+    popMatrix();
+
+    flashInicio(); // 👈 SIEMPRE AL FINAL
+
+    if (relojClick && !cambiarEscena && abs(zoom - zoomTarget) < 0.02) {
+      cambiarEscena = true;
+      //egipto.stop();
+      estadoGeneral = ESCENA3;
+    }
+  }
+
+  // ===============================
+  // INTERACCIÓN
+  // ===============================
+  void ratonDetectado() {
+
+    relojHover =
+      mouseX > relojX - reloj2.width/2 &&
+      mouseX < relojX + reloj2.width/2 &&
+      mouseY > relojY - reloj2.height/2 &&
+      mouseY < relojY + reloj2.height/2;
+
+    if (relojHover) {
+      cursor(HAND);
+      relojScaleTarget = 1.05;
+    } else {
+      cursor(ARROW);
+      relojScaleTarget = 1.0;
+    }
+  }
+
+  void ratonPulsado() {
+    if (relojHover && !cambiarEscena) {
+      relojClick = true;
+      //tadaa.play();
+      zoomTarget = 2.0;
+    }
+  }
+
+  void flashInicio() {
+
+    if (!flashActivo) return;
+
+    pushStyle();
+    noStroke();
+    fill(255, flashAlpha);
+    rectMode(CENTER);
+    rect(width/2, height/2, width, height);
+    popStyle();
+
+    flashAlpha -= 5;
+    if (flashAlpha <= 0) {
+      flashActivo = false;
+    }
+  }
+}
