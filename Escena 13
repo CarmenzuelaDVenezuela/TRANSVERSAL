@@ -1,0 +1,184 @@
+float ease(float current, float target, float speed) {
+  return current + (target - current) * speed;
+}
+
+class Escena13 {
+
+  // -------------------------
+  // ESTADOS
+  // -------------------------
+  final int E13_PREPARACION = 0;
+  final int E13_CAIDA_PRINCIPAL = 1;
+  final int E13_ENTRADA_TIEMPO = 2;
+  final int E13_ENFRENTADOS = 3;
+  final int E13_FINAL = 4; // pantalla negra antes de créditos
+
+  int estado;
+
+  // -------------------------
+  // PERSONAJE PRINCIPAL (ROJO)
+  // -------------------------
+  float pX, pY;
+  float pW = 140;
+  float pH = 340;
+  float rot = 0;
+
+  int spriteIndex = 0;
+  int spriteTimer = 0;
+  int totalSprites = 4;
+
+  // -------------------------
+  // PERSONAJE TIEMPO (AZUL)
+  // -------------------------
+  float tX, tY;
+  float tW = 150;
+  float tH = 520;
+
+  // -------------------------
+  // SUELO Y CÁMARA
+  // -------------------------
+  float sueloY;
+  float camX = 0;
+  float camY = 0;
+  float camZoom = 1.0;
+  float camZoomObj = 1.4; // zoom sobre azul
+
+  // -------------------------
+  // CONTROL ZOOM Y TIEMPO
+  // -------------------------
+  boolean zoomActivo = false;
+  float tiempoZoom = 0;
+  float tiempoEsperaFinal = 0;
+
+  Escena13() {
+    estado = E13_PREPARACION;
+
+    sueloY = height/2 + 280;
+
+    // Rojo entra desde la izquierda
+    pX = -300;
+    pY = sueloY - pH/2;
+
+    // Azul espera fuera a la derecha
+    tX = width + 300;
+    tY = sueloY - tH/2;
+  }
+
+  // -------------------------
+  // DIBUJAR
+  // -------------------------
+  void dibujar() {
+    rectMode(CENTER);
+
+    // Si estamos en pantalla negra, dibujamos solo negro
+    if (estado == E13_FINAL) {
+      background(0);
+    } else {
+      background(190);
+
+      pushMatrix();
+
+      // --- CÁMARA ---
+      translate(width/2, height/2);
+      scale(camZoom);
+      translate(-width/2 + camX, -height/2 + camY);
+
+      // -------- ROJO --------
+      pushMatrix();
+      translate(pX, pY);
+      rotate(rot);
+      fill(200, 90, 90);
+      rect(0, 0, pW, pH - spriteIndex * 30);
+      popMatrix();
+
+      // -------- AZUL --------
+      if (estado >= E13_ENTRADA_TIEMPO) {
+        fill(100, 150, 200);
+        rect(tX, tY, tW, tH);
+      }
+
+      popMatrix();
+    }
+
+    actualizar();
+  }
+
+  // -------------------------
+  // ACTUALIZAR
+  // -------------------------
+  void actualizar() {
+    switch (estado) {
+
+      case E13_PREPARACION:
+        estado = E13_CAIDA_PRINCIPAL;
+        break;
+
+      case E13_CAIDA_PRINCIPAL:
+        // Movimiento lateral y caída/tropiezo
+        pX = ease(pX, width/2 - 300, 0.05);
+        pY = ease(pY, sueloY - pW/2, 0.08);
+        rot = ease(rot, HALF_PI, 0.08);
+
+        spriteTimer++;
+        if (spriteTimer % 6 == 0) {
+          spriteIndex = (spriteIndex + 1) % totalSprites;
+        }
+
+        if (abs(rot - HALF_PI) < 0.02) {
+          rot = HALF_PI;
+          estado = E13_ENTRADA_TIEMPO;
+          tiempoZoom = millis(); // empezar a contar 1s para zoom
+        }
+        break;
+
+      case E13_ENTRADA_TIEMPO:
+        // Movimiento del azul desde la derecha
+        tX = ease(tX, width/2 + 300, 0.05);
+
+        // Activar zoom + centrado tras 1 segundo
+        if (!zoomActivo && abs(tX - (width/2 + 300)) < 2) {
+          zoomActivo = true;
+          tiempoZoom = millis(); // inicio del retraso 1 seg
+        }
+
+        if (zoomActivo && millis() - tiempoZoom >= 1000) {
+          float objetivoX = width/2 - tX;
+          float objetivoY = height/2 - tY;
+          camX = ease(camX, objetivoX, 0.05);
+          camY = ease(camY, objetivoY, 0.05);
+          camZoom = ease(camZoom, camZoomObj, 0.05);
+        }
+
+        // Pasar a enfrentados
+        if (abs(tX - (width/2 + 300)) < 2) {
+          estado = E13_ENFRENTADOS;
+          tiempoEsperaFinal = millis(); // empieza cuenta atrás 5s antes de negro
+        }
+        break;
+
+      case E13_ENFRENTADOS:
+        // Mantener zoom centrado y acercado en azul
+        if (zoomActivo) {
+          float objetivoX = width/2 - tX;
+          float objetivoY = height/2 - tY;
+          camX = ease(camX, objetivoX, 0.05);
+          camY = ease(camY, objetivoY, 0.05);
+          camZoom = ease(camZoom, camZoomObj, 0.05);
+        }
+
+        // Esperar 5 segundos y pasar a pantalla negra
+        if (millis() - tiempoEsperaFinal >= 5000) {
+          estado = E13_FINAL;
+          tiempoZoom = millis(); // iniciar contador para pantalla negra
+        }
+        break;
+
+      case E13_FINAL:
+        // pantalla negra visible un breve momento antes de cambiar a créditos
+        if (millis() - tiempoZoom >= 500) { // 0.5 seg negro
+          estadoGeneral = ESCENA_CREDITOS;
+        }
+        break;
+    }
+  }
+}
