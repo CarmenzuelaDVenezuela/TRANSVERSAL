@@ -1,0 +1,210 @@
+class Escena9 {
+
+  // SUBESTADOS
+  final int NORMAL = 0;
+  final int ACERCADO = 1;
+  int subestado = NORMAL;
+
+  // Rectángulos escena normal
+  float rectX;
+
+  float rectW = 200;
+  float rectH = 600;
+
+  // Rectángulo secundario
+  float rect2W = 160;
+  float rect2H = 420;
+
+  // Bases inferiores
+  float baseInferior1; // base del rectángulo central
+  float baseInferior2; // base del rectángulo secundario
+
+  // Péndulo
+  float angulo = 0;
+  float velocidad = 0.03;
+  float amplitud; // calculado en setup según cristal
+  float largoPendulo = 550;
+  float radioMasa = 20;
+
+  // Cristal
+  int clickCount = 0;
+  final int maxClicks = 4;
+
+  // Colores de cristal (simula cambio de imagen)
+  color[] cristales = {
+    color(180,200),
+    color(180,150,220),
+    color(180,220,150),
+    color(220,180,200)
+  };
+
+  // Transición
+  boolean iniciarTransicion = false;
+  float tiempoTransicion = 0;
+  final float DURACION_TRANSICION = 1000;
+  float anguloGlobal = 0;
+  float velocidadMaxGiro = PI * 0.5;
+
+  Escena9() {
+    rectX = width / 2;
+
+    // Línea inferior del rectángulo central (reloj)
+    baseInferior1 = height / 2 + 200;  // ajustable
+    // Línea inferior del rectángulo secundario
+    baseInferior2 = height / 2 + 250;   // ajustable a tu gusto
+
+    // Amplitud segura para que el péndulo no choque con el cristal
+    float cristalW = 290;
+    amplitud = asin((cristalW/2 - radioMasa)/largoPendulo);
+  }
+
+  void update() {
+    if (subestado == ACERCADO) {
+      angulo += velocidad;
+
+      if (iniciarTransicion) {
+        float t = millis() - tiempoTransicion;
+        if (t >= DURACION_TRANSICION) {
+          println("Aquí cambiaríamos a Escena10"); // placeholder
+        }
+      }
+    }
+  }
+
+  void run() {
+    update();
+
+    pushMatrix();
+
+    float scaleFactor = 1; // escala por defecto
+
+    if (iniciarTransicion) {
+      float t = millis() - tiempoTransicion;
+      float factor = constrain(t / DURACION_TRANSICION, 0, 1);
+
+      // velocidad progresiva de giro
+      float velocidadActual = pow(factor, 2) * velocidadMaxGiro;
+      anguloGlobal += velocidadActual;
+
+      // escala progresiva para llenar la pantalla
+      scaleFactor = 1 + factor * 2; // 1 → 3 veces tamaño, ajusta si quieres más
+    }
+
+    // Aplicamos transformación centrada
+    translate(width/2, height/2);
+    rotate(anguloGlobal);
+    scale(scaleFactor);
+    translate(-width/2, -height/2);
+
+    display();
+
+    popMatrix();
+  }
+
+  void display() {
+    background(220);
+    rectMode(CENTER);
+
+    if (subestado == NORMAL) {
+      dibujarNormal();
+    } else {
+      dibujarAcercado();
+    }
+  }
+
+  // ---------- DIBUJOS ----------
+
+  void dibujarNormal() {
+    float rect1Y = baseInferior1 - rectH / 2;
+    float rect2Y = baseInferior2 - rect2H / 2;
+
+    fill(200);
+    rect(rectX, rect1Y, rectW, rectH);
+
+    fill(150);
+    rect(rectX + 300, rect2Y, rect2W, rect2H);
+  }
+
+  void dibujarAcercado() {
+    background(220);
+    rectMode(CENTER);
+
+    float relojX = width / 2;
+    float relojY = height / 2 - 100;
+    float relojW = 390;
+    float relojH = 900;
+
+    fill(140);
+    rect(relojX, relojY, relojW, relojH);
+
+    float cristalW = 290;
+    float cristalH = 800;
+    float cristalY = relojY + 40;
+
+    fill(cristales[clickCount]);
+    rect(relojX, cristalY, cristalW, cristalH);
+
+    clip(
+      int(relojX - cristalW / 2),
+      int(cristalY - cristalH / 2),
+      int(cristalW),
+      int(cristalH)
+    );
+
+    pushMatrix();
+    float anclajeY = cristalY - cristalH / 2 + 30;
+    translate(relojX, anclajeY);
+
+    float a = sin(angulo) * amplitud;
+    rotate(a);
+
+    stroke(255);
+    strokeWeight(3);
+    line(0, 0, 0, largoPendulo);
+
+    noStroke();
+    fill(220);
+    ellipse(0, largoPendulo, radioMasa * 2, radioMasa * 2);
+    popMatrix();
+
+    noClip();
+  }
+
+  // ---------- INPUT ----------
+
+  void mousePressed() {
+    if (subestado == NORMAL && clickEnRectangulo(mouseX, mouseY)) {
+      subestado = ACERCADO;
+    } 
+    else if (subestado == ACERCADO) {
+      if (clickEnCristal(mouseX, mouseY) && clickCount < maxClicks - 1) {
+        clickCount++;
+        velocidad += 0.01;
+      } 
+      else if (clickEnCristal(mouseX, mouseY)) {
+        clickCount = maxClicks - 1;
+        iniciarTransicion = true;
+        tiempoTransicion = millis();
+      }
+    }
+  }
+
+  boolean clickEnRectangulo(float mx, float my) {
+    float rect1Y = baseInferior1 - rectH / 2;
+    return (mx > rectX - rectW / 2 &&
+            mx < rectX + rectW / 2 &&
+            my > rect1Y - rectH / 2 &&
+            my < rect1Y + rectH / 2);
+  }
+
+  boolean clickEnCristal(float mx, float my) {
+    float relojX = width / 2;
+    float cristalY = height / 2 + 20;
+    float cristalW = 200;
+    float cristalH = 420;
+    return (mx > relojX - cristalW / 2 &&
+            mx < relojX + cristalW / 2 &&
+            my > cristalY - cristalH / 2 &&
+            my < cristalY + cristalH / 2);
+  }
+}
