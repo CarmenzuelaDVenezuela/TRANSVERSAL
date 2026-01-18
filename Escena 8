@@ -11,14 +11,8 @@ class Escena8 {
   float aurX, aurY;
   float mujerX, mujerY;
 
-  // ===== TAMAÑOS =====
-  int aurW = 150;
-  int aurH = 350;
-  int mujerW = 400;
-  int mujerH = 1050;
-
   // ===== MOVIMIENTO =====
-  float velocidadAur = 2; // movimiento continuo
+  float velocidadAur = 15;
 
   // ===== TEMPORIZADOR MUJER =====
   int tiempoCambioMujer = 0;
@@ -28,17 +22,29 @@ class Escena8 {
   boolean espacioPresionado = false;
 
   // ===== TEMPORIZADORES =====
-  int tiempoAurPerdido = 0; // cuando Aurelio entra en estado perdido
-  int duracionAurPerdido = 3000; // 3 segundos antes de Game Over
+  int tiempoAurPerdido = 0;
+  int duracionAurPerdido = 3000;
 
-    // Imagenes   
-  // PImage fondo8_1, fondo8_2, aur8, aur8_2, mujer1, mujer2, mujer3,;
+  // ===== TEMPORIZADOR VICTORIA =====
+  int tiempoInicioVictoria = 0;
+  int duracionVictoria = 5000;
+  boolean victoriaIniciada = false;
 
-    // Audio
+  // ===== PANTALLA NEGRA =====
+  boolean pantallaNegra = false;
+  int tiempoPantallaNegra = 0;
+  int duracionPantallaNegra = 2000; // 2 segundos
+
+  // ===== IMÁGENES =====
+  PImage fondo8_1, fondo8_2, aur1, aur2, aur3, mujer1, mujer2, mujer3;
+  float fondoOffset1 = 0;
+  float fondoOffset2 = 0;
+
+  // ===== AUDIO =====
   AudioPlayer audio8, pillado, disimulo;
 
   Escena8() {
-    
+
     aurX = 500;
     aurY = height/2 + 100;
 
@@ -46,25 +52,23 @@ class Escena8 {
     mujerY = height/2 + 25;
 
     tiempoCambioMujer = millis();
-    
-        //Imagenes
-     //fondo8_1 = loadImage("esc8_1.png");
-     //fondo8_2 = loadImage("esc8_2.png");
-     //aur8 = loadImage("a8.png");
-     //aur8_2 = loadImage("a8_2.png");
-     //mujer1 = loadImage("mujer1.png");
-     //mujer2 = loadImage("mujer2.png");
-     //mujer3 = loadImage("mujer3.png");
-     
-        // Audio
-     //audio8 = audioManager.loadFile("esc8.mp3");
-     //pillado = audioManager.loadFile("pillado.mp3"); 
-     //disimulo = audioManager.loadFile("disimulo.mp3");
+
+    fondo8_1 = loadResizedImage("fondo8_1.png", width + 70);
+    fondo8_2 = loadResizedImage("fondo8_2.png", width + 400);
+    aur1 = loadResizedImage("aur8_1.png", 350);
+    aur2 = loadResizedImage("aur8_2.png", 300);
+    aur3 = loadResizedImage("aur8_3.png", 350);
+    mujer1 = loadResizedImage("mujer1.png", 550);
+    mujer2 = loadResizedImage("mujer2.png", 485);
+    mujer3 = loadResizedImage("mujer3.png", 450);
+
+    victoriaIniciada = false;
   }
 
   void dibujar() {
-    rectMode(CENTER);
-    background(200);
+    imageMode(CENTER);
+    image(fondo8_2, width/2 + fondoOffset2, height/2 - 115);
+    image(fondo8_1, width/2 + fondoOffset1, height/2);
 
     switch (estadoJuego) {
 
@@ -101,25 +105,22 @@ class Escena8 {
 
   // ==============================
   void dibujarMujer() {
-    if (estadoMujer == MUJER_VERDE) fill(0, 255, 0);
-    else if (estadoMujer == MUJER_AMARILLA) fill(255, 255, 0);
-    else fill(255, 0, 0);
-
-    rect(mujerX, mujerY, mujerW, mujerH);
+    if (estadoMujer == MUJER_VERDE) image(mujer1, mujerX + 35, mujerY);
+    else if (estadoMujer == MUJER_AMARILLA) image(mujer3, mujerX + 25, mujerY);
+    else image(mujer2, mujerX + 35, mujerY);
   }
 
   // ==============================
   void dibujarAurelio() {
-    if (estadoAurelio == AUR_QUIETO) fill(0, 0, 255);
-    else if (estadoAurelio == AUR_MOVIENDO) fill(255);
-    else if (estadoAurelio == AUR_PERDIDO) fill(100); // gris
-    rect(aurX, aurY, aurW, aurH);
+    if (estadoAurelio == AUR_QUIETO) image(aur2, aurX, aurY);
+    else if (estadoAurelio == AUR_MOVIENDO) image(aur1, aurX, aurY);
+    else if (estadoAurelio == AUR_PERDIDO) image(aur3, aurX, aurY);
   }
 
   // ==============================
   void manejarMovimientoAurelio() {
+
     if (estadoAurelio == AUR_PERDIDO) {
-      // ⬛ No puede moverse, activar temporizador
       if (millis() - tiempoAurPerdido > duracionAurPerdido) {
         estadoJuego = ESTADO_GAME_OVER;
       }
@@ -128,17 +129,21 @@ class Escena8 {
 
     if (espacioPresionado && estadoJuego == ESTADO_JUEGO) {
 
-      // 🚨 Si mujer está roja → Aurelio pasa a PERDIDO
       if (estadoMujer == MUJER_ROJA) {
         estadoAurelio = AUR_PERDIDO;
         tiempoAurPerdido = millis();
-        println("❌ PILLADO - Aurelio perdido");
         return;
       }
 
-      // ✅ Mover Aurelio normalmente
       estadoAurelio = AUR_MOVIENDO;
       aurX += velocidadAur;
+
+      fondoOffset1 -= 0.1;
+      fondoOffset2 -= 0.005;
+
+      fondoOffset1 = max(fondoOffset1, -200);
+      fondoOffset2 = max(fondoOffset2, -100);
+
     } else {
       estadoAurelio = AUR_QUIETO;
     }
@@ -154,11 +159,15 @@ class Escena8 {
 
   // ==============================
   void comprobarVictoria() {
-    if (aurX + aurW/2 >= width) {
+    if (aurX + aur2.width/2 + 75 >= width && !victoriaIniciada) {
+      victoriaIniciada = true;
+      pantallaNegra = true;
+      tiempoPantallaNegra = millis(); // iniciar conteo 2s
       estadoJuego = ESTADO_VICTORIA;
     }
   }
 
+  // ==============================
   void mostrarGameOver() {
     background(0);
     textAlign(CENTER, CENTER);
@@ -166,10 +175,14 @@ class Escena8 {
     text("INTÉNTALO OTRA VEZ", width/2, height/2);
   }
 
+  // ==============================
   void mostrarVictoria() {
-    fill(0, 255, 0);
-    textAlign(CENTER, CENTER);
-    textSize(50);
-    text("¡VICTORIA!", width/2, height/2);
+    if (pantallaNegra) {
+      background(0); // pantallazo negro
+      if (millis() - tiempoPantallaNegra >= duracionPantallaNegra) {
+        pantallaNegra = false;
+        estadoGeneral = ESCENA9; // cambiar escena tras 2s
+      }
+    }
   }
 }
