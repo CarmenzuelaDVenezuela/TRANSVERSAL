@@ -1,4 +1,13 @@
 class Escena9 {
+  
+ // Nuevo método para integrarse con switch-case
+void dibujar() {
+  run();
+}
+void ratonPulsado() {
+  mousePressed();
+}
+
 
   // SUBESTADOS
   final int NORMAL = 0;
