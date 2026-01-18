@@ -4,19 +4,20 @@
 final int ESCENA_DE_CARGA = 0;
 final int ESCENA1 = 1;
 final int ESCENA2 = 2;
-final int ESCENA3 = 3;
-final int ESCENA4 = 4;
-final int ESCENA5 = 5;
-final int ESCENA6 = 6;
-final int ESCENA7 = 7;
-final int ESCENA8 = 8;
-final int ESCENA9 = 9;
-final int ESCENA10 = 10;
-final int ESCENA11 = 11;
-final int ESCENA12 = 12;
-final int ESCENA13 = 13;
-final int ESCENA14 = 14;
-final int ESCENA15 = 15;
+final int ESCENA2_5 = 3;
+final int ESCENA3 = 4;
+final int ESCENA4 = 5;
+final int ESCENA5 = 6;
+final int ESCENA6 = 7;
+final int ESCENA7 = 8;
+final int ESCENA7_5 = 9;
+final int ESCENA8 = 10;
+final int ESCENA9 = 11;
+final int ESCENA10 = 12;
+final int ESCENA11 = 13;
+final int ESCENA12 = 14;
+final int ESCENA13 = 15;
+final int ESCENACREDITOS = 16;
 /**************************************************
         Estados de cada escena
 **************************************************/
@@ -48,3 +49,12 @@ final int AUR_PERDIDO = 2;
 final int ESTADO_JUEGO = 0;
 final int ESTADO_GAME_OVER = 1;
 final int ESTADO_VICTORIA = 2;
+
+/*Estados Escena13*/
+final int E13_PREPARACION = 0;
+final int E13_CAIDA_PRINCIPAL = 1;
+final int E13_ENTRADA_TIEMPO = 2;
+final int E13_ZOOM_AZUL = 3;
+final int E13_ZOOM_ROJO = 4;
+final int E13_PLANO_GENERAL = 5;
+final int E13_FINAL = 6;
