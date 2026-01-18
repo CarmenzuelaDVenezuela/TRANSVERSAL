@@ -1,106 +1,44 @@
 class Escena7 {
-  
+
   int estadoEscena7 = JUEGO;
-  
-  //IMAGENES
-  PImage falda, mano, reloj, fondo7, fondo7_2, reloj7, arb1, arb2;
-  
-  //AUDIO
-  AudioPlayer audio7, fallo, exito, susto, suspense;
 
-  // Tamaño personajes
-  int pw = 50;
-  int ph = 100;
+  int pw = 50, ph = 100;
+  float xBottom, yBottom;
+  float speedBottom = 8;
 
-  // Jugador
-  float xBottom;
-  float yBottom;
-
-  // Velocidades
-  float speedTop = 2;    // enemigos más lentos
-  float speedBottom = 8; // jugador más rápido
-
-  // Enemigos infinitos
   ArrayList<Enemy> enemies;
-  int maxEnemigos = 10; // cuantos enemigos como máximo pueden estar en pantalla
 
-  
-  // META
   float metaX, metaY;
   boolean metaActiva = false;
 
-  // Temporizador para spawn
   int tiempoAnterior = 0;
-  int intervalo; // variable aleatoria para cada spawn
+  int intervalo;
 
-  // NUEVO: estado interno de interacción
-  boolean interactuando = false;
-  
-  boolean gameOver = false;     // solo para choque con enemigos
-  int tiempoGameOver = 0;       // cuando empieza el mensaje
-  int duracionGameOver = 4000;  // 4 segundos
-  
-  boolean suspenseSonando = false;
-  
-  
-  //SEGUNDA PARTE
-  
-  //falda
-  int faldaX, faldaY, faldaW, faldaH;
-  
-  //reloj
-  int relojX, relojY, relojW, relojH;
+  boolean gameOver = false;
+  int tiempoGameOver = 0;
+  int duracionGameOver = 4000;
 
-  //cuerpo
-  int cuerpoX, cuerpoY, cuerpoW, cuerpoH;
+  boolean jugadorMoviendose = false;
 
-  
-  //mano 
-  int manoX, manoY, manoW, manoH;
-  // --- interacción mano ---
-  boolean manoActiva = false;
-  int tiempoMano = 0;
-  int duracionMano = 3000; // 3 segundos
+  Animation aurArr;
+  Animation aurDer;
+  Animation aurIzq;
+  Animation aurActual;
 
+  PImage fondo, arb, meta;
 
-  // Constructor
   Escena7() {
     iniciar();
-    
-    //IMAGENES   
-      // fondo7= loadImage("fondo7.png");
-      // cuerpo= loadImage("cuerpo.png");
-      // reloj7= loadImage("r7.png");
-      // mano1= loadImage("mano7_1.png");
-      // mano2= loadImage("mano7_2.png");
-      // arb1= loadImage("arb1.png");
-      // arb2= loadImage("arb2.png");
-      
-    //AUDIOS
-     //audio7 = audioManager.loadFile("esc7.mp3");
-     //susto = audioManager.loadFile("eak.mp3");
-     //exito = audioManager.loadFile("exito.mp3"); 
-     //fallo = audioManager.loadFile("fallo.mp3");
-     //exito = audioManager.loadFile("exito.mp3"); 
-    
-    //SEGUNDA PARTE
-    faldaX= width/2-600;
-    faldaY= height/2;
-    faldaW= 1000;
-    faldaH= 1200;
-    relojX= width/2-200;
-    relojY= height/2 -150;
-    relojW= 300;
-    relojH= 850;
-    manoX= width/2+450;
-    manoY= height/2 -100;
-    manoW= 800;
-    manoH= 750;
-    cuerpoX= width/2+650;
-    cuerpoY= height/2+50;
-    cuerpoW= 500;
-    cuerpoH= 1100;
 
+    aurArr = new Animation("aurarr", 4);
+    aurDer = new Animation("aurder", 4);
+    aurIzq = new Animation("aurizq", 4);
+
+    fondo = loadResizedImage("FondoVerde.png", width);
+    arb = loadResizedImage("arb.png", width);
+    meta = loadImage("meta.png");
+
+    aurActual = aurArr;
   }
 
   void iniciar() {
@@ -109,216 +47,145 @@ class Escena7 {
 
     enemies = new ArrayList<Enemy>();
     tiempoAnterior = millis();
-    intervalo = int(random(500, 500)); // primer spawn aleatorio
-    interactuando = false; // inicializamos el estado
-      // META
-  generarMeta();
+    intervalo = int(random(600, 900));
 
+    generarMeta();
+
+    // -------- ENEMIGOS DESDE EL INICIO --------
+    for (int i = 0; i < 4; i++) {
+      Enemy e = new Enemy();
+      e.y = random(0, height - ph);
+
+      if (random(1) < 0.5) {
+        e.x = random(-200, -pw);
+        e.direccion = 1;
+      } else {
+        e.x = random(width + pw, width + 200);
+        e.direccion = -1;
+      }
+
+      enemies.add(e);
+    }
   }
 
-void dibujar() {
-  background(200);
-  //audio7.loop();
+  void dibujar() {
+    image(fondo, width / 2, height / 2);
 
-  switch (estadoEscena7) {
+    if (estadoEscena7 == GAME_OVER) {
+      dibujarGameOver();
+      return;
+    }
 
-  case JUEGO:
     dibujarJuego();
-    rect(0,0,300,1080);
-    rect(width-300,0,300,1080);
-    break;
-
-  case INTERACCION:
-    dibujarInteraccion();
-    break;
-
-  case GAME_OVER:
-    dibujarGameOver();
-    break;
+    image(arb, width / 2, height / 2);
   }
-}
 
+  void dibujarJuego() {
 
-  // ===== INPUT TECLADO DENTRO DE LA CLASE =====
+    // -------- SPAWN CONTINUO --------
+    if (millis() - tiempoAnterior > intervalo) {
+      Enemy e = new Enemy();
+      e.y = random(0, height - ph);
+
+      if (random(1) < 0.5) {
+        e.x = -pw;
+        e.direccion = 1;
+      } else {
+        e.x = width;
+        e.direccion = -1;
+      }
+
+      enemies.add(e);
+      tiempoAnterior = millis();
+      intervalo = int(random(200, 500));
+    }
+
+    // -------- ENEMIGOS --------
+    for (int i = enemies.size() - 1; i >= 0; i--) {
+      Enemy e = enemies.get(i);
+      e.update();
+      e.display();
+
+      // -------- COLISIÓN AJUSTADA --------
+      float margen = 12;
+
+      if (colision(
+            e.x + margen,
+            e.y + margen,
+            pw - margen * 2,
+            ph - margen * 2,
+            xBottom,
+            yBottom,
+            pw,
+            ph)) {
+
+        estadoEscena7 = GAME_OVER;
+        tiempoGameOver = millis();
+      }
+
+      if (e.x < -pw || e.x > width) {
+        enemies.remove(i);
+      }
+    }
+
+    aurActual.display(xBottom, yBottom, jugadorMoviendose);
+
+    if (metaActiva) {
+      image(meta, metaX, metaY, pw, ph);
+    }
+
+    if (metaActiva && colision(metaX, metaY, pw, ph, xBottom, yBottom, pw, ph)) {
+      metaActiva = false;
+      estadoGeneral = ESCENA7_5;
+    }
+  }
+
+  void dibujarGameOver() {
+    background(0);
+
+    if ((millis() / 250) % 2 == 0) {
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(40);
+      text("INTÉNTALO OTRA VEZ", width / 2, height / 2);
+    }
+
+    if (millis() - tiempoGameOver > duracionGameOver) {
+      exit();
+    }
+  }
+
   void teclaPulsada() {
-    if (estadoEscena7 == JUEGO) {
+
+    jugadorMoviendose = false;
+
     if (keyCode == LEFT) {
       xBottom -= speedBottom;
-      if (xBottom < 0) xBottom = 0;
-    } else if (keyCode == RIGHT) {
+      aurActual = aurIzq;
+      jugadorMoviendose = true;
+    }
+
+    if (keyCode == RIGHT) {
       xBottom += speedBottom;
-      if (xBottom > width - pw) xBottom = width - pw;
-    } else if (keyCode == UP) {
+      aurActual = aurDer;
+      jugadorMoviendose = true;
+    }
+
+    if (keyCode == UP) {
       yBottom -= speedBottom;
-      // Ya no hay restricción superior para atravesar el borde
-     }
-    }
-  }
-
-  // Input mouse (puede usarlo más adelante)
-void ratonPulsado() {
-  if (estadoEscena7 != INTERACCION) return;
-
-  // CLICK EN MANO
-  if (mouseX > manoX - manoW/2 && mouseX < manoX + manoW/2 &&
-      mouseY > manoY - manoH/2 && mouseY < manoY + manoH/2) {
-
-    manoActiva = true;
-    //susto.play();
-    tiempoMano = millis();
-  }
-
-  // CLICK EN RELOJ → siguiente escena
-  if (mouseX > relojX - relojW/2 && mouseX < relojX + relojW/2 &&
-      mouseY > relojY - relojH/2 && mouseY < relojY + relojH/2) {
-   //suspense.stop();
-   //suspenseSonando = false;
-   exit();//estadoGeneral = ESCENA8; 
-  }
-}
-
-void dibujarJuego() {
-
-  // Spawn enemigos
-  if (millis() - tiempoAnterior > intervalo && enemies.size() < maxEnemigos) {
-    Enemy e = new Enemy();
-    e.y = random(0, height - ph);
-
-    if (random(1) < 0.5) {
-      e.x = -pw;
-      e.direccion = 1;
-    } else {
-      e.x = width;
-      e.direccion = -1;
+      aurActual = aurArr;
+      jugadorMoviendose = true;
     }
 
-    enemies.add(e);
-    tiempoAnterior = millis();
-    intervalo = int(random(200, 500));
+    xBottom = constrain(xBottom, 0, width - pw);
   }
 
-  // Enemigos
-  for (int i = enemies.size() - 1; i >= 0; i--) {
-    Enemy e = enemies.get(i);
-    e.update();
-    e.display();
-
-    if (colision(e.x, e.y, pw, ph, xBottom, yBottom, pw, ph)) {
-      estadoEscena7 = GAME_OVER;
-      tiempoGameOver = millis();
-    }
-
-    if (e.x < -pw || e.x > width) {
-      enemies.remove(i);
-    }
+  void generarMeta() {
+    metaX = random(600, 1000);
+    metaY = 70;
+    metaActiva = true;
   }
 
-  // Jugador
-  fill(0, 0, 255);
-  rect(xBottom, yBottom, pw, ph);
-  
-  // META
- if (metaActiva) {
-  fill(0, 255, 0);
-  rect(metaX, metaY, pw, ph);
- }
- 
- if (metaActiva && colision(metaX, metaY, pw, ph, xBottom, yBottom, pw, ph)) {
-  //exito.play();
-  //audio7.stop();
-  metaActiva = false;
-  estadoEscena7 = INTERACCION;
- }
-}
-
-
-void dibujarGameOver() {
-  background(0);
-  //fallo.play();
-
-  if ((millis() / 250) % 2 == 0) {
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(40);
-    text("INTÉNTALO OTRA VEZ", width/2, height/2);
-  }
-
-  if (millis() - tiempoGameOver > duracionGameOver) {
-    //audio7.stop();
-    exit();
-  }
-}
-
-void dibujarInteraccion() {
-  background(200);
-
-/*  // --- AUDIO SUSPENSE ---
-  if (!suspenseSonando) {
-    suspense.loop();
-    suspense.setGain(-40); // empieza bajo
-    suspenseSonando = true;
-  }
-
-  actualizarSuspensePorDistancia();*/
-
-  pushStyle();
-  rectMode(CENTER);
-
-  // falda
-  fill(255,0,0);
-  rect(faldaX, faldaY, faldaW, faldaH);
-
-  // cuerpo
-  fill(0,255,0);
-  rect(cuerpoX, cuerpoY, cuerpoW, cuerpoH);
-
-  // reloj
-  fill(255,255,0);
-  rect(relojX, relojY, relojW, relojH);
-
-  // mano
-  if (manoActiva && millis() - tiempoMano < duracionMano) {
-    fill(255, 0, 255);
-  } else {
-    manoActiva = false;
-    fill(100, 255, 100);
-  }
-  rect(manoX, manoY, manoW, manoH);
-
-  popStyle();
-}
-
-void generarMeta() {
-  float margen = 300; // ancho de los rectángulos laterales
-
-  metaX = random(margen, width - margen - pw);
-  metaY = 70; // parte superior
-
-  metaActiva = true;
-}
-
-
-/*void actualizarSuspensePorDistancia() {
-
-  // Centro del reloj (rectMode CENTER)
-  float cx = relojX;
-  float cy = relojY;
-
-  // Usamos el mouse como "cursor de acercamiento"
-  float d = dist(mouseX, mouseY, cx, cy);
-
-  // Distancia máxima considerada
-  float distanciaMax = 800;
-  float distanciaMin = 100;
-
-  // Convertimos distancia a volumen (dB)
-  float volumen = map(d, distanciaMax, distanciaMin, -40, 0);
-  volumen = constrain(volumen, -40, 0);
-
-  suspense.setGain(volumen);
-}*/
-
-  // Colisiones AABB
   boolean colision(float x1, float y1, float w1, float h1,
                    float x2, float y2, float w2, float h2) {
     return x1 < x2 + w2 &&
@@ -327,24 +194,67 @@ void generarMeta() {
            y1 + h1 > y2;
   }
 
-  // ===============================
-  // CLASE INTERNA ENEMY
- class Enemy {
-  float x, y;
-  int direccion;     // +1 = derecha, -1 = izquierda
-  float speed;       // NUEVO: velocidad individual
+  // ================= ENEMY =================
+  class Enemy {
+    float x, y;
+    int direccion;
+    float speed = random(1, 5);
 
-  Enemy() {
-    speed = random(1, 3); // velocidad aleatoria por enemigo
+    Animation animDer;
+    Animation animIzq;
+    Animation animActual;
+
+    Enemy() {
+      String tipo;
+      int r = int(random(3));
+      if (r == 0) tipo = "a";
+      else if (r == 1) tipo = "o";
+      else tipo = "v";
+
+      animDer = new Animation(tipo + "der", 4);
+      animIzq = new Animation(tipo + "izq", 4);
+    }
+
+    void update() {
+      x += speed * direccion;
+
+      if (direccion == 1) {
+        animActual = animDer;
+      } else {
+        animActual = animIzq;
+      }
+    }
+
+    void display() {
+      animActual.display(x, y, true);
+    }
   }
 
-  void update() {
-    x += speed * direccion;
-  }
+  // ================= ANIMATION =================
+  class Animation {
+    PImage[] images;
+    int imageCount;
+    int frame;
+    int lastTime = 0;
+    int frameDelay = 166;
 
-  void display() {
-    fill(0);
-    rect(x, y, pw, ph);
+    Animation(String imagePrefix, int count) {
+      imageCount = count;
+      images = new PImage[imageCount];
+
+      for (int i = 0; i < imageCount; i++) {
+        String filename = imagePrefix + nf(i, 4) + ".png";
+        images[i] = loadImage(filename);
+      }
+    }
+
+    void display(float xpos, float ypos, boolean animar) {
+      if (animar && millis() - lastTime > frameDelay) {
+        frame = (frame + 1) % imageCount;
+        lastTime = millis();
+      }
+
+      image(images[frame], xpos, ypos, pw, ph);
+    }
   }
- }
 }
