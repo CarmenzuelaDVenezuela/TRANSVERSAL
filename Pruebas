@@ -21,15 +21,15 @@ Escena12 escena12;
 Escena13 escena13;
 EscenaCreditos escenaCreditos;
 
-// Minim audioManager;
-// AudioPlayer sonidoGeneral;
+Minim audioManager;
+AudioPlayer sonidoGeneral;
 // PImage flechaDerecha;
 
 void setup() {
   size(1366, 768, FX2D);//Full HD
   hint(ENABLE_KEY_REPEAT);
   fullScreen();
- // audioManager = new Minim(this);
+ audioManager = new Minim(this);
   escenaDeCarga = new EscenaDeCarga();
   escena1 = new Escena1();
   escena2 = new Escena2();
@@ -47,7 +47,7 @@ void setup() {
   escena12 = new Escena12();
   escena13 = new Escena13();
   escenaCreditos = new EscenaCreditos();
-  estadoGeneral = ESCENA_DE_CARGA;
+  estadoGeneral = ESCENA2;
  // flechaDerecha = loadImage("flechaDerecha.png");
 }
 
