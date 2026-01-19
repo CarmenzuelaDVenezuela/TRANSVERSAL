@@ -1,6 +1,7 @@
 // --- Escena11.pde ---
 // Conecta Cuatro + gestión de estados + tiempos + menú empate con botón NO evasivo
 // + animación de entrada del tablero y la chica
+// + CPU para jugador 2 (verde)
 
 class Escena11 {
 
@@ -34,6 +35,10 @@ class Escena11 {
   float botonH = 50;
 
   PImage tableroImg, chica1, chica2, chica3, chica4, fondo12;
+
+  // --- CPU jugador 2 ---
+  int tiempoCPU = 0;
+  int retrasoCPU = 800; // ms de espera para que CPU juegue
 
   Escena11() {
     tablero = new int[FILAS][COLUMNAS];
@@ -70,50 +75,58 @@ class Escena11 {
 
     // --- Animación de entrada ---
     if (!entradaCompletada) {
-     
         chicaYAnim = lerp(chicaYAnim, chicaTargetY, 0.08);
         image(chica1, width/2, chicaYAnim);
 
-      if (abs(chicaYAnim - chicaTargetY) < 1) {   
-      tableroY = lerp(tableroY, tableroTargetY, 0.08);
-      image(tableroImg, width/2, tableroY, COLUMNAS * tam + 100, FILAS * tam + 100);
+        if (abs(chicaYAnim - chicaTargetY) < 1) {   
+            tableroY = lerp(tableroY, tableroTargetY, 0.08);
+            image(tableroImg, width/2, tableroY, COLUMNAS * tam + 100, FILAS * tam + 100);
 
-        if (abs(tableroY - tableroTargetY) < 1) {
-          entradaCompletada = true;
-          subestado = 0; // inicia el juego
+            if (abs(tableroY - tableroTargetY) < 1) {
+                entradaCompletada = true;
+                subestado = 0; // inicia el juego
+                tiempoCPU = millis(); // iniciar temporizador CPU
+            }
         }
-      }
-
-      return; // no dibujar más hasta terminar la animación
+        return; // no dibujar más hasta terminar animación
     }
 
     // --- Juego ---
     if (subestado == 0) {
-      dibujarTablero();
-      if (estado != 0) {
-        tiempoInicio = millis();
-        subestado = 1;
-      }
+        dibujarTablero();
+        if (estado != 0) {
+            tiempoInicio = millis();
+            subestado = 1;
+        }
     } 
     else if (subestado == 1) {
-      dibujarTablero();
-      if (millis() - tiempoInicio > duracionTablero) {
-        tiempoInicio = millis();
-        subestado = 2;
-      }
+        dibujarTablero();
+        if (millis() - tiempoInicio > duracionTablero) {
+            tiempoInicio = millis();
+            subestado = 2;
+        }
     }
     else if (subestado == 2) {
-      dibujarTablero();
-      dibujarResultado();
+        dibujarTablero();
+        dibujarResultado();
 
-      int t = millis() - tiempoInicio;
+        int t = millis() - tiempoInicio;
 
-      if (estado == 1 && t > duracionVictoria) exit();
-      if (estado == 2 && t > duracionDerrota)  exit();
+        if (estado == 1 && t > duracionVictoria) estadoGeneral=ESCENA12;
+        if (estado == 2 && t > duracionDerrota)  exit();
     }
 
     if (estado == 3 && mostrarMenuEmpate) {
-      dibujarMenuEmpate();
+        dibujarMenuEmpate();
+    }
+
+    // --- CPU turno ---
+    if (!entradaCompletada || subestado != 0) return;
+    if (estado != 2 && turno == 2) {
+        if (millis() - tiempoCPU > retrasoCPU) {
+            jugarCPU();
+            tiempoCPU = millis();
+        }
     }
   }
 
@@ -128,8 +141,8 @@ class Escena11 {
         float x = offsetX/2 + c * tam + tam/2 + 100;
         float y = offsetY/2 + f * tam + tam/2 - 25;
 
-        if (tablero[f][c] == 1) fill(255, 255, 0);
-        else if (tablero[f][c] == 2) fill(0, 255, 0);
+        if (tablero[f][c] == 1) fill(255, 255, 0); // jugador 1
+        else if (tablero[f][c] == 2) fill(0, 255, 0); // CPU
         else continue;
         
         noStroke();
@@ -191,7 +204,7 @@ class Escena11 {
       return;
     }
 
-    if (!entradaCompletada || subestado != 0) return;
+    if (!entradaCompletada || subestado != 0 || turno == 2) return;
 
     int col = int((mouseX - offsetX/2 - 80) / tam);
     if (col < 0 || col >= COLUMNAS) return;
@@ -200,7 +213,8 @@ class Escena11 {
       if (tablero[f][col] == 0) {
         tablero[f][col] = turno;
         comprobarEstado();
-        turno = (turno == 1) ? 2 : 1;
+        turno = 2; // turno CPU
+        tiempoCPU = millis(); // reiniciar temporizador CPU
         break;
       }
     }
@@ -259,5 +273,27 @@ class Escena11 {
     tableroY = -500;
     chicaYAnim = height + 500;
     entradaCompletada = false;
+  }
+
+  // --- CPU simple: coloca ficha verde al azar en columna válida
+  void jugarCPU() {
+    ArrayList<Integer> columnasValidas = new ArrayList<Integer>();
+    for (int c = 0; c < COLUMNAS; c++) {
+      if (tablero[0][c] == 0) columnasValidas.add(c);
+    }
+    
+    if (columnasValidas.size() == 0) return;
+
+    int col = columnasValidas.get(int(random(columnasValidas.size())));
+
+    for (int f = FILAS - 1; f >= 0; f--) {
+      if (tablero[f][col] == 0) {
+        tablero[f][col] = 2; // CPU
+        break;
+      }
+    }
+
+    comprobarEstado();
+    turno = 1; // vuelve al jugador 1
   }
 }
