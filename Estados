@@ -21,6 +21,14 @@ final int ESCENACREDITOS = 16;
 /**************************************************
         Estados de cada escena
 **************************************************/
+
+
+  // ===== ESTADOS =====
+final int INIT = 0;
+final int RUNNING = 1;
+final int ACELERANDO = 2;
+final int FINALIZANDO = 3;
+
 /*Estados Escena1*/
 final int E1_ACCION_INICIAL = -1;
 final int E1_ACCION_MOVIMIENTO = 0;
