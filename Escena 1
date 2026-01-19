@@ -61,10 +61,10 @@ class Escena1 {
      time1 = loadResizedImage("time1.png", 300);
     
     // Audio
-     //audioEsc1 = audioManager.loadFile("esc1.mp3");
-      //dial1 = audioManager.loadFile("time2.mp3"); 
-      //dial2 = audioManager.loadFile("time1.mp3");
-      //audTrans = audioManager.loadFile("brisa.mp3");
+     audio1 = audioManager.loadFile("esc1.mp3");
+      dial1 = audioManager.loadFile("aur1.mpeg"); 
+      dial2 = audioManager.loadFile("time1.mpeg");
+      audTrans = audioManager.loadFile("brisa.mp3");
      estadoEscena1 = E1_ACCION_INICIAL;
   }
 
@@ -108,8 +108,8 @@ void dibujar() {
     switch (estadoEscena1) {
 
     case E1_ACCION_INICIAL: // Preparación
-      // audioEsc1.loop();
-      //audioEsc1.setVolume(65);
+       audio1.loop();
+       audio1.setGain(-5);
       estadoEscena1 = E1_ACCION_MOVIMIENTO;
       break;
 
@@ -124,13 +124,14 @@ void dibujar() {
       break;
 
     case E1_ACCION_DIALOGO1:
-    //dial1.play(); 
-    //audioEsc1.shiftVolume(65, 25, 5000);
+    audio1.shiftGain(-5, -20, 0);
+    dial1.setGain(650);
+    dial1.play(); 
       camaraDialogo1();
 
-      if (/*dial1.isPlayin()*/t < 10000) {
+      if (t < 6500) {
         // diálogo 1 activo
-      } else {/*dial2.play(); */
+      } else {
         estadoEscena1 = E1_ACCION_DIALOGO2;
         tiempoEstado = millis();
      }
@@ -138,10 +139,13 @@ void dibujar() {
     
     case E1_ACCION_DIALOGO2:
        camaraDialogo2();
+       
+      dial2.setGain(1200);
+      dial2.play();
 
-     if (/*dial2.isPlayin()*/t < 15000) {
+     if (t < 10000) {
       // diálogo 2 activo
-     } else {//audioEsc1.shiftVolume(25, 65, 5000);
+     } else {audio1.shiftGain(-20, -5, 3000);
        estadoEscena1 = E1_ACCION_VUELTA;
        tiempoEstado = millis();
     }
@@ -162,12 +166,13 @@ void dibujar() {
   break;
 
     case E1_ACCION_TRANSICION:
-       //audioEsc1.shiftVolume(65, 15, 5000);
+       audio1.shiftGain(-5, -20, 0);
        
   if (transicionActiva) {
     
-    //audioEsc1.stop();
-    //audTrans.play();
+    audio1.pause();
+    audTrans.setGain(50);
+    audTrans.play();
 
     // Barrido hacia la izquierda
   camX = lerp(camX, -width * 1.2, 0.1);
@@ -175,7 +180,7 @@ void dibujar() {
 
     // Cuando ya salió de pantalla
     if (camX < -width) {
-      // audTrans.stop();
+       audTrans.pause();
        estadoGeneral = ESCENA2;
     }
   }
