@@ -11,16 +11,14 @@ class EscenaDeCarga {
   float angulo = 0;
 
   // Velocidades
-  float velocidadBase = 0.0015;   // velocidad inicial fija
+  float velocidadBase = 0.0015;
   float velocidad = velocidadBase;
 
-  // Aceleración exponencial
-  float factorAceleracion = 1.02; // cuanto mayor, más agresiva
+  // Aceleración
+  float factorAceleracion = 1.02;
   boolean acelerando = false;
   int tiempoInicioAceleracion = -1;
-  int duracionAceleracion = 8000; // 5 segundos
-  boolean escenaCambiada = false;
-
+  int duracionAceleracion = 8000;
 
   int ultimoClick = 0;
   int intervaloDobleClick = 300;
@@ -35,11 +33,18 @@ class EscenaDeCarga {
   boolean animFinished = false;
   int lastFrameTime = 0;
 
+  // ===== AUDIO =====
+  AudioPlayer edc;
+
+  int estado = INIT;
+
   // ===== CONSTRUCTOR =====
   EscenaDeCarga() {
     cx = width - width / 4;
     cy = height / 2;
     radio = min(width, height) * 0.35;
+
+    edc = audioManager.loadFile("edc.mp3");
 
     imageMode(CENTER);
 
@@ -49,67 +54,76 @@ class EscenaDeCarga {
     aguja2  = loadResizedImage("aguja2.png", 1000);
 
     for (int i = 0; i < numFrames; i++) {
-      images[i] = loadResizedImage("mano" + nf(i, 4) + ".png",1200);
+      images[i] = loadResizedImage("mano" + nf(i, 4) + ".png", 1200);
     }
   }
-  
-void actualizar() {
-  angulo += velocidad;
 
-  if (acelerando) {
-    velocidad *= factorAceleracion; // aceleración exponencial
+  // ===== UPDATE FÍSICO =====
+  void actualizar() {
+    angulo += velocidad;
+
+    if (acelerando) {
+      velocidad *= factorAceleracion;
+    }
   }
-}
-
-
 
   // ===== DRAW =====
   void dibujar() {
-    image(fondo,width/2,height/2);
-    
-    actualizar();
-    updateAnimation();
 
+    image(fondo, width/2, height/2);
+
+    updateAnimation();
     dibujarReloj();
     drawAnimation();
-    
-    if (acelerando && !escenaCambiada) {
-  if (millis() - tiempoInicioAceleracion >= duracionAceleracion) {
-    estadoGeneral=ESCENA1;
-  }
-}
 
+    switch (estado) {
+
+      case INIT:
+        edc.setGain(-10); // ajusta si quieres
+        edc.loop();
+        estado = RUNNING;
+        break;
+
+      case RUNNING:
+        actualizar();
+        break;
+
+      case ACELERANDO:
+        actualizar();
+
+        if (millis() - tiempoInicioAceleracion >= duracionAceleracion) {
+          estado = FINALIZANDO;
+        }
+        break;
+
+      case FINALIZANDO:
+        edc.pause();
+        estadoGeneral = ESCENA1;
+        break;
+    }
   }
 
   // ===== RELOJ =====
-void dibujarReloj() {
+  void dibujarReloj() {
 
-  image(relojIn, cx, cy);
+    image(relojIn, cx, cy);
 
-  // ===== AGUJA LARGA =====
-  pushMatrix();
-  translate(cx+600, cy);   // este será el punto de rotación
-  rotate(angulo);
+    pushMatrix();
+    translate(cx + 600, cy);
+    rotate(angulo);
+    imageMode(CORNER);
+    image(aguja1, -aguja1.width, -aguja1.height / 2);
+    popMatrix();
 
-  imageMode(CORNER);
-  image(aguja1, -aguja1.width, -aguja1.height / 2);
+    pushMatrix();
+    translate(cx + 750, cy);
+    rotate(angulo * 0.6);
+    imageMode(CORNER);
+    image(aguja2, -aguja2.width, -aguja2.height / 2);
+    popMatrix();
 
-  popMatrix();
-
-  // ===== AGUJA CORTA =====
-  pushMatrix();
-  translate(cx+750, cy);
-  rotate(angulo * 0.6);
-
-  imageMode(CORNER);
-  image(aguja2, -aguja2.width, -aguja2.height / 2);
-
-  popMatrix();
-
-  imageMode(CENTER); // restaurar
-}
-
-
+    imageMode(CENTER);
+  }
 
   // ===== INPUT =====
   void botonPulsado() {
@@ -133,9 +147,10 @@ void dibujarReloj() {
       lastFrameTime = millis();
       currentFrame++;
 
-      if (currentFrame == 3 && !acelerando) {
-          acelerando = true;
-          tiempoInicioAceleracion = millis(); // ⏱ inicio
+      if (currentFrame == 3 && estado == RUNNING) {
+        acelerando = true;
+        tiempoInicioAceleracion = millis();
+        estado = ACELERANDO;
       }
 
       if (currentFrame >= numFrames) {
@@ -147,6 +162,6 @@ void dibujarReloj() {
   }
 
   void drawAnimation() {
-    image(images[currentFrame], width / 2-500, height / 2+200);
+    image(images[currentFrame], width / 2 - 500, height / 2 + 200);
   }
 }
