@@ -1,0 +1,246 @@
+float easeDT(float current, float target, float speed, float dt) {
+  return current + (target - current) * speed * dt;
+}
+
+
+class Escena13 {
+
+  int estado;
+
+  PImage r14, time14, fondofinal;
+
+  // -------------------------
+  // PERSONAJE PRINCIPAL (ROJO)
+  // -------------------------
+  float pX, pY;
+  float pW = 140;
+  float pH = 340;
+
+  Animation rojoAnim;
+  boolean animTerminada = false;
+
+  float pXInicial;
+  float pXObjetivo;
+
+  // -------------------------
+  // PERSONAJE TIEMPO (AZUL)
+  // -------------------------
+  float tX, tY;
+
+  // -------------------------
+  // SUELO Y CÁMARA
+  // -------------------------
+  float sueloY;
+  float camX = 0;
+  float camY = 0;
+  float camZoom = 1.0;
+  float camZoomObj = 1.0;
+
+  // -------------------------
+  // CONTROL
+  // -------------------------
+  boolean zoomActivo = false;
+  float tiempoEstado = 0;
+
+  // -------------------------
+  // TRANSICIÓN
+  // -------------------------
+  float rX, rY;
+  boolean escenaActiva = false;
+
+  float deltaTime;
+  int lastMillis;
+
+  Escena13() {
+
+    estado = E13_PREPARACION;
+    lastMillis = millis();
+
+    sueloY = height/2 + 280;
+
+    pXInicial = -110;
+    pXObjetivo = width/2 - 650;
+    pX = pXInicial;
+    pY = sueloY - 150;
+
+    tX = width + 300;
+    tY = sueloY - 520/2;
+
+    r14 = loadResizedImage("r14.png", width);
+    time14 = loadResizedImage("time14.png", 400);
+    fondofinal = loadResizedImage("fondofinal.png", width);
+
+    rX = width / 2;
+    rY = height / 2;
+
+    rojoAnim = new Animation("aurcae", 6, 8);
+  }
+
+  // -------------------------
+  // DIBUJAR
+  // -------------------------
+  void dibujar() {
+
+    if (estado == E13_FINAL) {
+      background(0);
+      actualizar();
+      return;
+    }
+
+    pushMatrix();
+
+    translate(width/2, height/2);
+    scale(camZoom);
+    translate(-width/2 + camX, -height/2 + camY);
+
+    image(fondofinal, 0, 0);
+
+    rojoAnim.display(pX - pW/2, pY - pH/2, animTerminada);
+
+    if (estado >= E13_ENTRADA_TIEMPO) {
+      imageMode(CENTER);
+      image(time14, tX, tY);
+    }
+
+    image(r14, rX, rY);
+
+    popMatrix();
+
+    actualizar();
+  }
+
+  // -------------------------
+  // ACTUALIZAR
+  // -------------------------
+  void actualizar() {
+
+    int now = millis();
+    deltaTime = (now - lastMillis) / 1000.0;
+    lastMillis = now;
+
+    // -------- TRANSICIÓN INICIAL --------
+    if (!escenaActiva) {
+
+      float objetivoX = -width / 3;
+      rX = easeDT(rX, objetivoX, 4.0, deltaTime);
+      camZoom = easeDT(camZoom, camZoomObj, 4.0, deltaTime);
+
+      if (abs(rX - objetivoX) < 2) {
+        rX = objetivoX;
+        escenaActiva = true;
+        tiempoEstado = millis();
+      }
+      return;
+    }
+
+    switch (estado) {
+
+      case E13_PREPARACION:
+        estado = E13_CAIDA_PRINCIPAL;
+        break;
+
+      case E13_CAIDA_PRINCIPAL:
+        if (!animTerminada) {
+          rojoAnim.update();
+          float t = (float)rojoAnim.currentFrame / (rojoAnim.imageCount - 1);
+          pX = lerp(pXInicial, pXObjetivo, t);
+        } else {
+          pX = pXObjetivo;
+          estado = E13_ENTRADA_TIEMPO;
+          tiempoEstado = millis();
+        }
+        break;
+
+      case E13_ENTRADA_TIEMPO:
+        tX += ((width/2 + 300) - tX) * 2.0 * deltaTime;
+
+        if (!zoomActivo && abs(tX - (width/2 + 300)) < 3) {
+          zoomActivo = true;
+          tiempoEstado = millis();
+        }
+
+        if (zoomActivo && millis() - tiempoEstado >= 5000) {
+          camZoomObj = 1.4;
+          camX = easeDT(camX, width/2 - tX, 5.0, deltaTime);
+          camY = easeDT(camY, height/2 - tY, 5.0, deltaTime);
+
+          if (millis() - tiempoEstado >= 10000) {
+            estado = E13_ZOOM_ROJO;
+            tiempoEstado = millis();
+          }
+        }
+        break;
+
+      case E13_ZOOM_ROJO:
+        camZoomObj = 1.4;
+        camX = easeDT(camX, width/2 - pX, 5.0, deltaTime);
+        camY = easeDT(camY, height/2 - pY, 5.0, deltaTime);
+
+        if (millis() - tiempoEstado >= 5000) {
+          estado = E13_PLANO_GENERAL;
+          tiempoEstado = millis();
+        }
+        break;
+
+      case E13_PLANO_GENERAL:
+        camZoomObj = 1.0;
+        camX = easeDT(camX, 0, 4.0, deltaTime);
+        camY = easeDT(camY, 0, 4.0, deltaTime);
+
+        if (millis() - tiempoEstado >= 5000) {
+          estado = E13_FINAL;
+          tiempoEstado = millis();
+        }
+        break;
+
+      case E13_FINAL:
+        if (millis() - tiempoEstado >= 3000) {
+          estadoGeneral = ESCENACREDITOS;
+        }
+        break;
+    }
+
+    camZoom = easeDT(camZoom, camZoomObj, 4.0, deltaTime);
+  }
+
+  // ================== ANIMATION ==================
+  class Animation {
+
+    PImage[] images;
+    int imageCount;
+    int currentFrame = 0;
+    int frameDelay;
+    int lastUpdate;
+
+    Animation(String prefix, int count, int fps) {
+      imageCount = count;
+      images = new PImage[count];
+      for (int i = 0; i < count; i++) {
+        images[i] = loadResizedImage(prefix + nf(i, 4) + ".png", 500);
+      }
+      frameDelay = 1000 / fps;
+      lastUpdate = millis();
+    }
+
+    void update() {
+      if (!animTerminada) {
+        int now = millis();
+        if (now - lastUpdate >= frameDelay) {
+          currentFrame++;
+          if (currentFrame >= imageCount - 1) {
+            currentFrame = imageCount - 1;
+            animTerminada = true;
+          }
+          lastUpdate = now;
+        }
+      }
+    }
+
+    void display(float x, float y, boolean stop) {
+      imageMode(CORNER);
+      image(images[currentFrame],
+            x + currentFrame * 20,
+            y + currentFrame * 30);
+    }
+  }
+}
