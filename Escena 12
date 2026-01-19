@@ -18,42 +18,44 @@ class Escena12 {
   // ===== ESCENA =====
   boolean llegadaFinal = false;
   boolean gameOver = false;
+  int tiempoGameOver = 0;
+  int duracionGameOver = 4000;
 
   // FINAL
   PImage r14;
   boolean mostrarRelojFinal = false;
   float r14X, r14TargetX;
 
-  // ===== NUEVAS VARIABLES ANIMACIÓN SALIDA =====
   boolean r14Salida = false;
   float r14TargetSalidaX = 0;
 
-  // Control del jugador
+  // ===== JUGADOR =====
   float pjX, pjY;
   float pjW = 280, pjH = 340;
   float velocidad = 5, velocidadY = 5;
   boolean moverArriba = false, moverAbajo = false;
 
-  // Sprite animado del jugador
   SpriteAnim pjAnim;
 
-  // Generación continua
+  // ===== GENERACIÓN =====
   float ultimaXObs;
   float ultimaXMargen;
   float minSeparacionObs = 1700;
   float minSeparacionMargen = 1600;
 
-  // Temporizador
   int startTime;
 
+  // ===== AUDIO =====
+  AudioPlayer audio12, crash, exito;
+  int estadoAudio = AUDIO_LOOP10;
+
   Escena12() {
-    // FONDOS
+
     fondo1 = loadResizedImage("fondo13.png", 2635); 
     fondo2 = loadResizedImage("fondo13.png", 2635); 
     fondo1X = 0;
     fondo2X = fondo1.width;
 
-    // RELOJES
     rMargen = new PImage[3];
     rMargen[0] = loadResizedImage("r13_2_1.png", 250);
     rMargen[1] = loadResizedImage("r13_2_2.png", 400);
@@ -68,145 +70,123 @@ class Escena12 {
     r14X = width + r14.width/2; 
     r14TargetX = width;
 
-    // Posición inicial jugador
     pjX = 150;
     pjY = height/2;
+    pjAnim = new SpriteAnim("aurcor", 6, 8);
 
-    // Cargar animación del jugador
-    pjAnim = new SpriteAnim("aurcor", 6, 8); // 6 frames, 8 fps
-
-    // Listas
     margen = new ArrayList<Elemento>();
     obstaculos = new ArrayList<Elemento>();
     generarElementosIniciales();
+
     startTime = millis();
+
+    audio12 = audioManager.loadFile("audio12.mp3");
+    crash   = audioManager.loadFile("crash.mp3");
+    exito   = audioManager.loadFile("exito.mp3");
+
+    audio12.setGain(0);
+    crash.setGain(0);
+    exito.setGain(0);
+
+    estadoAudio = AUDIO_LOOP10;
   }
 
-  // ================== MÉTODOS DE GENERACIÓN ==================
-  void generarElementosIniciales() {
-    float xAnteriorObs = width;
-    float xAnteriorMargen = width;
+  // ================= AUDIO FSM =================
+  void manejarAudio() {
+    switch (estadoAudio) {
 
-    for (int i = 0; i < 6; i++) {
-      float x = xAnteriorObs + minSeparacionObs + random(50,150);
-      float y = random(200, height-200);
-      obstaculos.add(new Elemento(x, y, rObstaculos[i%3]));
-      xAnteriorObs = x;
-    }
-    ultimaXObs = xAnteriorObs;
+      case AUDIO_LOOP10:
+        if (!audio12.isPlaying()) audio12.loop();
+        break;
 
-    for (int i = 0; i < 6; i++) {
-      float x = xAnteriorMargen + minSeparacionMargen + random(50,150);
-      float y = (i%2==0)? random(50,150): random(height-150, height-50);
-      margen.add(new Elemento(x, y, rMargen[i%3]));
-      xAnteriorMargen = x;
-    }
-    ultimaXMargen = xAnteriorMargen;
-  }
+      case AUDIO_CRASH:
+        if (!crash.isPlaying()) {
+          audio12.pause();
+          crash.play();
+        }
+        break;
 
-  void generarElementosContinuos() {
-    while (ultimaXObs < width*3) {
-      float x = ultimaXObs + minSeparacionObs + random(50,150);
-      float y = random(200, height-200);
-      obstaculos.add(new Elemento(x, y, rObstaculos[int(random(3))]));
-      ultimaXObs = x;
-    }
-    while (ultimaXMargen < width*3) {
-      float x = ultimaXMargen + minSeparacionMargen + random(50,150);
-      float y = (random(1)>0.5)? random(50,150): random(height-150, height-50);
-      margen.add(new Elemento(x, y, rMargen[int(random(3))]));
-      ultimaXMargen = x;
+      case AUDIO_EXITO:
+        if (!exito.isPlaying()) {
+          audio12.pause();
+          exito.play();
+        }
+        break;
+
+      case AUDIO_STOP7:
+        audio12.pause();
+        break;
     }
   }
 
-  // ================== DIBUJAR ==================
+  // ================= DIBUJAR =================
   void dibujar() {
-    background(135,206,250);
 
-    // ===== DESPLAZAMIENTO DEL FONDO =====
+    manejarAudio();
+    background(135, 206, 250);
+
     if (fondoActivo && !fondoParado) {
       fondo1X -= fondoVel;
       fondo2X -= fondoVel;
       if (fondo1X + fondo1.width < 0) fondo1X = fondo2X + fondo2.width;
       if (fondo2X + fondo2.width < 0) fondo2X = fondo1X + fondo1.width;
     }
+
     imageMode(CORNER);
     image(fondo1, fondo1X, 0);
     image(fondo2, fondo2X, 0);
 
-    // ===== GENERACIÓN CONTINUA =====
-    if (!gameOver && !mostrarRelojFinal && fondoActivo && !fondoParado) {
+    if (!gameOver && !mostrarRelojFinal && !fondoParado) {
       generarElementosContinuos();
       for (Elemento e : obstaculos) e.x -= elementosVelX;
       for (Elemento e : margen) e.x -= elementosVelX;
     }
-    
-    for (Elemento e : margen) { imageMode(CENTER); image(e.img, e.x, e.y); }
 
-    // ===== CONTROL DEL JUGADOR =====
+    for (Elemento e : margen) imageMode(CENTER);
+    for (Elemento e : margen) image(e.img, e.x, e.y);
+
     if (!gameOver) {
       if (!fondoParado) {
         if (moverArriba) pjY -= velocidadY;
         if (moverAbajo) pjY += velocidadY;
-      } else {
-        pjX += 10; // avance automático al detenerse el fondo
-      }
+      } else pjX += 10;
+
       pjY = constrain(pjY, pjH/2, height - pjH/2);
     }
 
-    // ===== DIBUJAR SPRITE DEL JUGADOR =====
     pjAnim.display(pjX - pjW/2, pjY - pjH/2);
 
-    // ===== DIBUJAR MÁRGENES Y OBSTÁCULOS =====
-    for (Elemento e : obstaculos) { imageMode(CENTER); image(e.img, e.x, e.y); }
+    for (Elemento e : obstaculos) image(e.img, e.x, e.y);
 
-    // ===== TEMPORIZADOR PARA RELOJ FINAL =====
-    if (!mostrarRelojFinal && millis() - startTime >= 30000) mostrarRelojFinal = true;
-
-    // ===== ANIMACIÓN DEL RELOJ FINAL =====
-    if (mostrarRelojFinal) {
-
-      // Inicia animación de salida cuando Aurelio llega a la meta
-      if (pjX > width && !r14Salida) {
-        r14Salida = true;
-        r14TargetSalidaX = width/2;
+    float hitboxReduction = 70;
+    for (Elemento e : obstaculos) {
+      float r = max(0, e.img.width/2 - hitboxReduction);
+      if (dist(pjX, pjY, e.x, e.y) < r + pjW/2 && !gameOver) {
+        estadoAudio = AUDIO_CRASH;
+        gameOver = true;
+        tiempoGameOver = millis();
       }
-
-      // Animación de entrada
-      if (!r14Salida) {
-        r14X = lerp(r14X, r14TargetX, 0.05);
-        if (abs(r14X - r14TargetX) < 1) {
-          r14X = r14TargetX;
-          fondoParado = true;
-        }
-      } else {
-        // Animación de salida hacia el centro (rápida)
-        r14X = lerp(r14X, r14TargetSalidaX, 0.2);
-      }
-
-      imageMode(CENTER);
-      image(r14, r14X, height/2);
     }
 
-    // ===== COLISIONES REDUCIDAS (hitbox 50 px más pequeña) =====
-        float hitboxReduction = 75; // reducción de 50 píxeles en la hitbox de cada reloj
-        for (Elemento e : obstaculos) {
-          float r = max(0, e.img.width/2 - hitboxReduction); // hitbox más pequeña
-          if (dist(pjX, pjY, e.x, e.y) < r + pjW/2) gameOver = true;
-        }
+    if (pjX > width && !gameOver) {
+      estadoAudio = AUDIO_EXITO;
+      audio12.pause();
+      estadoGeneral = ESCENA13;
+    }
 
-
-    // ===== FIN ESCENA =====
-    if (pjX > width && !gameOver) estadoGeneral = ESCENA13;
-
-    // ===== GAME OVER =====
     if (gameOver) {
-      fill(0,180);
-      rect(width/2, height/2, 400, 200, 20);
-      fill(255);
-      textAlign(CENTER, CENTER);
-      textSize(36);
-      text("GAME OVER", width/2, height/2);
+      if ((millis() / 250) % 2 == 0) {
+        fill(255);
+        textAlign(CENTER, CENTER);
+        textSize(40);
+        text("INTÉNTALO OTRA VEZ", width/2, height/2);
+      }
+
+      if (millis() - tiempoGameOver > duracionGameOver) {
+        estadoAudio = AUDIO_STOP7;
+        audio12.pause();
+        estadoGeneral = ESCENACREDITOS;
+      }
     }
   }
 
@@ -221,39 +201,41 @@ class Escena12 {
     if (key == 's' || key == 'S' || keyCode == DOWN) moverAbajo = false;
   }
 
-  // ================== CLASE ELEMENTO ==================
+  // ===== CLASES =====
   class Elemento {
-    float x, y; PImage img;
-    Elemento(float x, float y, PImage img) { this.x = x; this.y = y; this.img = img; }
+    float x, y; 
+    PImage img;
+    Elemento(float x, float y, PImage img) {
+      this.x = x;
+      this.y = y;
+      this.img = img;
+    }
   }
 
-  // ================== CLASE ANIMACIÓN DEL SPRITE ==================
   class SpriteAnim {
     PImage[] frames;
-    int count;
-    int currentFrame = 0;
-    int frameDelay;
-    int lastUpdate;
+    int count, currentFrame = 0, frameDelay, lastUpdate;
 
     SpriteAnim(String prefix, int count, int fps) {
       this.count = count;
       frames = new PImage[count];
-      for (int i = 0; i < count; i++) {
-        String filename = prefix + nf(i, 4) + ".png";
-        frames[i] = loadImage(filename);
-      }
+      for (int i = 0; i < count; i++)
+        frames[i] = loadImage(prefix + nf(i, 4) + ".png");
+
       frameDelay = 1000 / fps;
       lastUpdate = millis();
     }
 
     void display(float x, float y) {
-      int now = millis();
-      if (now - lastUpdate >= frameDelay) {
+      if (millis() - lastUpdate > frameDelay) {
         currentFrame = (currentFrame + 1) % count;
-        lastUpdate = now;
+        lastUpdate = millis();
       }
       imageMode(CORNER);
       image(frames[currentFrame], x, y, pjH, pjW);
     }
   }
+
+  void generarElementosIniciales() {}
+  void generarElementosContinuos() {}
 }
