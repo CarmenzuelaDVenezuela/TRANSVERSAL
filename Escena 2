@@ -40,7 +40,7 @@ class Escena2 {
   boolean cambiarEscena = false;
   
   //audio
-  AudioPlayer audio2, sonidoCaminando, sonidoCrash, sonidoExito;
+  AudioPlayer audio2, sonidoCrash, sonidoExito;
 
   // ===============================
   // CONSTRUCTOR
@@ -53,10 +53,9 @@ class Escena2 {
     laberinto = loadResizedImage("laberinto.png", width);
     camino    = loadResizedImage("camino.png", width);
 
-    // audio2 = audioManager.loadFile("esc2.mp3"); 
-    // sonidoCaminando = audioManager.loadFile("pisadas.mp3"); 
-    // sonidoCrash = audioManager.loadFile("crash.mp3"); 
-    // sonidoExito = audioManager.loadFile("exito.mp3"); 
+     audio2 = audioManager.loadFile("audio2.mp3"); 
+     sonidoCrash = audioManager.loadFile("crash.mp3"); 
+     sonidoExito = audioManager.loadFile("exito.mp3"); 
     
   }
 
@@ -70,7 +69,8 @@ class Escena2 {
     switch (estadoEscena) {
 
     case ARRANCANDO_AUDIO:
-    //audio2.loop();
+    audio2.setGain(-15);
+    audio2.loop();
       estadoEscena = JUGANDO;
       break;
 
@@ -141,7 +141,7 @@ void dibujar() {
       }
 
       if (estadoJugador == 2) {
-        //audio2.stop();// pasar de escena tras meta
+        audio2.pause();// pasar de escena tras meta
         estadoGeneral = ESCENA2_5;
       }
     }
@@ -176,13 +176,15 @@ void mover(int tecla) {
     y = ny;
 
     if (x >= width - 50) {
-      //sonidoExito.play();
+      sonidoExito.setGain(60);
+      sonidoExito.play();
       estadoJugador = 2;
       tiempoEstado = millis();
     }
 
   } else {
-    // sonidoCrash.play();
+    sonidoCrash.setGain(20);
+     sonidoCrash.play();
     estadoJugador = 1;
     tiempoEstado = millis();
   }
